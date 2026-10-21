@@ -1,1 +1,59 @@
-
+<!DOCTYPE html>
+<html lang="rw">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIRROR SCI-FI - Register</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:Inter,sans-serif;background:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px;position:relative;overflow:hidden}
+.mirror-bg{position:fixed;inset:0;background:url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920') center/cover;opacity:.10;filter:blur(1px) brightness(1.6);z-index:-2}
+.mirror-overlay{position:fixed;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(240,248,255,.92));backdrop-filter:blur(25px);z-index:-1}
+.glide{animation:glide 7s ease-in-out infinite;font-family:Orbitron,monospace}@keyframes glide{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px);text-shadow:0 0 25px rgba(0,200,255,.4)}}
+.glass{background:rgba(255,255,255,.78);backdrop-filter:blur(30px);border:1px solid rgba(0,200,255,.18);box-shadow:0 20px 60px rgba(0,0,0,.08)}
+input{width:100%;padding:16px 18px;border-radius:14px;border:1px solid rgba(0,0,0,.08);background:rgba(255,255,255,.9);outline:none;font-size:15px}
+input:focus{border-color:#00c8ff;box-shadow:0 0 0 4px rgba(0,200,255,.12)}
+.btn-mirror{background:linear-gradient(135deg,#0a0a0a,#1a1a2e);color:#fff;padding:16px;border-radius:14px;border:none;width:100%;font-weight:700;letter-spacing:1px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="mirror-bg"></div><div class="mirror-overlay"></div>
+<div class="glass rounded-[2.5rem] p-8 md:p-10 w-full max-w-[440px] relative">
+<div class="absolute -top-14 left-1/2 -translate-x-1/2 w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-2xl"><img src="https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=300" class="w-full h-full object-cover"></div>
+<div class="mt-10 text-center"><h1 class="glide text-3xl font-bold tracking-widest">MIRROR SCI-FI</h1><p class="text-[11px] tracking-[0.3em] text-gray-500 mt-2">WHITE MIRROR • WELCOME 2,000 FRW</p></div>
+<form id="registerForm" class="mt-7 space-y-4">
+<input id="full_name" placeholder="Amazina yuzuye" required>
+<input id="phone" placeholder="Telefone 078..." required>
+<input type="password" id="password" placeholder="Password" required>
+<input id="referral_code_input" placeholder="Referral Code (optional)">
+<button id="btn" class="btn-mirror">IYANDIKISHE → DASHBOARD</button>
+<p id="msg" class="text-center text-sm"></p>
+<div class="text-center text-sm">Ufite konti? <a href="login.html" class="font-bold underline">Login</a></div>
+</form>
+</div>
+<script>
+const SUPABASE_URL = 'https://evkzhphiuxkahjejgswlam.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2a3pocGl1eGthZWplZ3N3bGFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDg5MzQsImV4cCI6MjEwODA4NDkzNH0.Yu-2Djq7sWY1bjHY-GnpVLpWr70nls7bDF0Bd_FLcSA';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const urlParams = new URLSearchParams(window.location.search);
+if(urlParams.get('ref')) document.getElementById('referral_code_input').value = urlParams.get('ref');
+document.getElementById('registerForm').addEventListener('submit', async (e)=>{
+ e.preventDefault();
+ const btn=document.getElementById('btn'); const msg=document.getElementById('msg');
+ btn.innerText='TURIMO...'; btn.disabled=true;
+ const full_name=document.getElementById('full_name').value.trim();
+ const phone=document.getElementById('phone').value.trim();
+ const password=document.getElementById('password').value.trim();
+ const referred_by=document.getElementById('referral_code_input').value.trim()||null;
+ const {data:exists}=await supabase.from('members').select('id').eq('phone',phone).maybeSingle();
+ if(exists){msg.style.color='red';msg.innerText='Phone isanzweho - Login';btn.innerText='IYANDIKISHE → DASHBOARD';btn.disabled=false;return;}
+ const myCode='MIRROR'+Math.random().toString(36).substring(2,7).toUpperCase();
+ const {data,error}=await supabase.from('members').insert([{full_name,phone,password,referral_code:myCode,referred_by,balance:2000,welcome_bonus:2000}]).select().single();
+ if(error){msg.style.color='red';msg.innerText=error.message;btn.innerText='IYANDIKISHE → DASHBOARD';btn.disabled=false;return;}
+ localStorage.setItem('mirror_user_id',data.id); localStorage.setItem('mirror_phone',phone);
+ msg.style.color='green';msg.innerText='Welcome 2,000 FRW - Dashboard...';
+ setTimeout(()=>location.href='dashboard.html',1000);
+});
+</script>
+</body>
+  </html>
