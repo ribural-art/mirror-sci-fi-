@@ -3,55 +3,77 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mirror Sci-Fi</title>
+<title>Mirror Sci-Fi - Register</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://evkzhpiuxkaejegswlam.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2a3pocGl1eGthZWplZ3N3bGFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDg5MzQsImV4cCI6MjEwODA4NDkzNH0.Yu-2Djq7sWY1bjHY-GnpVLpWr70nls7bDF0Bd_FLcSA";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</script>
 <style>
-body{min-height:100vh;background:url('mirror-log-bg.png') center/cover no-repeat,#020d1f;display:flex;align-items:center;justify-content:center;position:relative}
-body::before{content:'';position:absolute;inset:0;background:rgba(2,13,31,0.85)}
-.card{position:relative;z-index:2;width:92%;max-width:380px;background:rgba(10,25,50,0.92);border:1px solid #00eaff44;border-radius:18px;padding:24px}
-.logo{text-align:center}
-.logo img{width:90px;height:90px;object-fit:contain}
-.logo h1{color:#7efcff;letter-spacing:2px;margin-top:8px;font-size:20px}
-.input{width:100%;padding:13px;margin:8px 0;border-radius:10px;border:1px solid #00eaff33;background:#061428;color:#fff}
-.btn{width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(90deg,#00eaff,#7efcff);color:#001a33;font-weight:700;margin-top:12px}
-.tab{display:flex;gap:10px;margin-bottom:12px}
-.tab button{flex:1;padding:10px;border-radius:8px;border:1px solid #00eaff33;background:transparent;color:#7efcff}
-.tab button.active{background:#00eaff22}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{min-height:100vh;background:#050a1e url('mirror-log-bg.png') no-repeat center center fixed;background-size:cover;display:flex;align-items:center;justify-content:center;padding:15px}
+.overlay{position:fixed;inset:0;background:rgba(5,10,30,0.85);backdrop-filter:blur(3px)}
+.card{position:relative;z-index:2;width:100%;max-width:380px;background:rgba(15,20,41,0.95);border:1px solid #00f7ff;border-radius:20px;padding:20px;box-shadow:0 0 40px rgba(0,247,255,0.25)}
+.logo-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:12px}
+.logo-img{width:90px;height:90px;object-fit:contain;border-radius:50%;background:#000;border:2px solid #00f7ff;box-shadow:0 0 20px #00f7ff;padding:6px}
+.title{font-size:22px;font-weight:900;color:#00f7ff;letter-spacing:2px;text-shadow:0 0 10px #00f7ff;margin-top:8px}
+.subtitle{font-size:11px;color:#ff3b3b;letter-spacing:3px;margin-top:2px;font-weight:700}
+.welcome-badge{background:linear-gradient(135deg,#00f7ff,#ff00ff);color:white;padding:8px;border-radius:10px;text-align:center;font-weight:800;font-size:12px;margin:12px 0;box-shadow:0 0 15px rgba(0,247,255,0.5)}
+.input{width:100%;padding:12px;border-radius:10px;border:1px solid #333;background:#000;color:white;margin:6px 0;font-size:13px}
+.btn{width:100%;padding:13px;border-radius:12px;border:none;font-weight:900;cursor:pointer;margin-top:8px;font-size:13px}
+.btn-reg{background:#00f7ff;color:black;box-shadow:0 0 20px #00f7ff}
+.btn-login{background:transparent;color:#00f7ff;border:1px solid #00f7ff}
+.ref-info{background:rgba(255,59,59,0.1);border:1px solid rgba(255,59,59,0.3);border-radius:8px;padding:8px;margin:8px 0;font-size:10px;color:#ffaa88}
 </style>
 </head>
 <body>
+<div class="overlay"></div>
 <div class="card">
-  <div class="logo">
-    <img src="mirror-log.png" alt="logo">
-    <h1>MIRROR SCI-FI</h1>
+  <div class="logo-wrap">
+    <img src="mirror-log.png" alt="Mirror" class="logo-img" onerror="this.src='https://via.placeholder.com/90/000/00f7ff?text=MIRROR'">
+    <div class="title">MIRROR SCI-FI</div>
+    <div class="subtitle">TECH INVESTMENT</div>
   </div>
-  <div class="tab">
-    <button id="loginTab" class="active" onclick="switchTab('login')">Login</button>
-    <button id="regTab" onclick="switchTab('register')">Register</button>
-  </div>
-  <input id="phone" class="input" placeholder="Phone">
-  <input id="password" type="password" class="input" placeholder="Password">
-  <input id="names" class="input" placeholder="Names" style="display:none">
-  <input id="referral" class="input" placeholder="Referral" style="display:none">
-  <button class="btn" onclick="handleAuth()">INJIRA</button>
-  <div id="msg"></div>
+  <div class="welcome-badge">🎁 WELCOME BONUS 2000 RWF - LOCKED UNTIL FIRST DEPOSIT</div>
+  <div id="refNotice" class="ref-info" style="display:none">🎁 Invited by: <span id="refBy"></span> - Lev1 20% bonus after your deposit</div>
+  <input class="input" id="phone" placeholder="Phone: 07... (MTN)">
+  <input class="input" id="pass" type="password" placeholder="Password (min 6)">
+  <input class="input" id="confirmPass" type="password" placeholder="Confirm Password">
+  <input class="input" id="refCode" placeholder="Referral Code (optional)">
+  <button class="btn btn-reg" onclick="doRegister()">REGISTER & CLAIM 2000 RWF</button>
+  <button class="btn btn-login" onclick="location.href='login.html'">Already have account? LOGIN</button>
 </div>
-<script src="config.js"></script>
 <script>
-let mode='login';
-function switchTab(m){mode=m;document.getElementById('loginTab').classList.toggle('active',m==='login');document.getElementById('regTab').classList.toggle('active',m==='register');document.getElementById('names').style.display=m==='register'?'block':'none';document.getElementById('referral').style.display=m==='register'?'block':'none';}
-async function handleAuth(){
- const phone=document.getElementById('phone').value.trim();
- const pass=document.getElementById('password').value.trim();
- const names=document.getElementById('names').value.trim();
- const ref=document.getElementById('referral').value.trim();
- const {data,error}=mode==='login' ? await supabaseClient.from('users').select('*').eq('phone',phone).eq('password',pass).single() : await supabaseClient.from('users').insert({phone,password:pass,names,referral_code:phone.slice(-6),referred_by:ref}).select().single();
- if(error){document.getElementById('msg').innerText=error.message;return}
- localStorage.setItem('mirror_user',JSON.stringify(data));
- if(data.role==='admin'||data.is_admin) location.href='admin.html'; else location.href='dashboard.html';
+const urlParams = new URLSearchParams(window.location.search);
+const refFromUrl = urlParams.get('ref') || urlParams.get('code') || urlParams.get('r');
+if(refFromUrl){document.getElementById('refCode').value=refFromUrl;document.getElementById('refNotice').style.display='block';document.getElementById('refBy').innerText=refFromUrl;}
+function generateRefCode(){return 'MIRROR-'+Math.random().toString(36).substring(2,7).toUpperCase()+Date.now().toString().slice(-3);}
+async function doRegister(){
+  let phone=document.getElementById('phone').value.trim();
+  let pass=document.getElementById('pass').value.trim();
+  let confirmPass=document.getElementById('confirmPass').value.trim();
+  let refInput=document.getElementById('refCode').value.trim();
+  if(!phone||!pass){alert('Uzuza phone na password');return;}
+  if(phone.length<10){alert('Phone ntibyumvikana');return;}
+  if(pass.length<6){alert('Password min 6 chars');return;}
+  if(pass!==confirmPass){alert('Password ntibihura');return;}
+  let btn=document.querySelector('.btn-reg');btn.innerText='Registering...';btn.disabled=true;
+  try{
+    let {data:exists}=await supabaseClient.from('users').select('phone').eq('phone',phone).maybeSingle();
+    if(exists){alert('Phone isanzwe ibaho - Jya kuri login');location.href='login.html';return;}
+    let referredBy=null;
+    if(refInput){let {data:refUser}=await supabaseClient.from('users').select('id,ref_code').eq('ref_code',refInput).maybeSingle();if(!refUser){alert('Referral code siyo');btn.innerText='REGISTER & CLAIM 2000 RWF';btn.disabled=false;return;}referredBy=refUser.id;}
+    let userId='user_'+Date.now()+'_'+Math.random().toString(36).substring(2,6);
+    let myRefCode=generateRefCode();
+    let newUser={id:userId,phone:phone,password:pass,real_balance:0,welcome_bonus:2000,welcome_locked:true,daily_income:0,total_earnings:0,has_deposited:false,ref_code:myRefCode,referred_by:referredBy};
+    let {error}=await supabaseClient.from('users').insert(newUser);
+    if(error){alert('Error: '+error.message);btn.innerText='REGISTER & CLAIM 2000 RWF';btn.disabled=false;return;}
+    localStorage.setItem('mirror_user_id',userId);localStorage.setItem('mirror_phone',phone);localStorage.setItem('mirror_ref_code',myRefCode);
+    if(referredBy){await supabaseClient.from('transactions').insert({user_id:referredBy,type:'Referral Invite Pending - '+phone,amount:0,status:'pending'});}
+    alert('✅ Registered! Welcome 2000 RWF locked - Kora deposit ya mbere kuri Code 2181876 Sifa kugirango u-unlock!');location.href='dashboard.html';
+  }catch(e){alert('Error: '+e.message);btn.innerText='REGISTER & CLAIM 2000 RWF';btn.disabled=false;}
 }
-const cached=JSON.parse(localStorage.getItem('mirror_user')||'null');
-if(cached){if(cached.role==='admin') location.href='admin.html'; else location.href='dashboard.html';}
 </script>
 </body>
- </html>
+  </html>
