@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="rw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mirror Sci-Fi - Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://evkzhpiuxkaejegswlam.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2a3pocGl1eGthZWplZ3N3bGFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDg5MzQsImV4cCI6MjEwODA4NDkzNH0.Yu-2Djq7sWY1bjHY-GnpVLpWr70nls7bDF0Bd_FLcSA";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{background:url('mirror-log-bg.png') no-repeat center center fixed;background-size:cover;min-height:100vh;color:white;position:relative}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,10,30,0.88);z-index:-1}
+.header{background:rgba(0,0,0,0.7);padding:14px 15px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #00f7ff;position:sticky;top:0;z-index:10}
+.logo{font-weight:900;letter-spacing:2px;color:#00f7ff;text-shadow:0 0 10px #00f7ff;font-size:18px}
+.balance-card{background:linear-gradient(135deg,rgba(0,247,255,0.15),rgba(138,43,226,0.15));border:1px solid #00f7ff;border-radius:16px;margin:15px;padding:18px;box-shadow:0 0 20px rgba(0,247,255,0.25)}
+.b-row{display:flex;justify-content:space-between;margin:10px 0;align-items:center}
+.b-label{color:#aaa;font-size:13px}
+.b-value{font-weight:800;font-size:17px}
+.locked{color:#ffaa00}
+.locked small{background:#ff3b3b;color:white;padding:1px 6px;border-radius:4px;font-size:10px;margin-left:5px}
+.unlocked{color:#00ff88;text-shadow:0 0 8px #00ff88}
+.countdown{background:#ffaa00;color:black;padding:7px 12px;border-radius:20px;font-weight:900;font-size:12px;text-align:center;margin-top:10px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:15px}
+.btn{padding:14px;border-radius:12px;border:none;font-weight:800;cursor:pointer}
+.btn-deposit{background:#00f7ff;color:black;box-shadow:0 0 15px #00f7ff}
+.btn-withdraw{background:transparent;border:1px solid #00f7ff;color:#00f7ff}
+.btn-claim{background:#00ff88;color:black;width:100%;margin-top:10px;box-shadow:0 0 15px #00ff88}
+.plans{margin:15px}
+.plan-card{background:rgba(0,0,0,0.55);border:1px solid rgba(0,247,255,0.35);border-radius:14px;padding:12px;margin-bottom:12px;display:flex;gap:10px;align-items:center}
+.plan-card img{width:70px;height:70px;object-fit:cover;border-radius:10px;border:1px solid #00f7ff;background:#111}
+.plan-info{flex:1}
+.plan-name{font-weight:800;color:#00f7ff;font-size:15px}
+.plan-price{font-size:12px;color:#bbb}
+.plan-income{color:#00ff88;font-weight:700;font-size:13px}
+.buy-btn{background:#8a2be2;color:white;padding:8px 14px;border-radius:8px;border:none;font-weight:700;cursor:pointer}
+.history{margin:15px;background:rgba(0,0,0,0.45);border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,0.08)}
+.hist-item{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:11px}
+.modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.88);z-index:99;align-items:flex-start;justify-content:center;padding:15px;overflow-y:auto}
+.modal.active{display:flex}
+.modal-box{background:#0f1429;border:1px solid #00f7ff;border-radius:16px;padding:18px;width:100%;max-width:440px;box-shadow:0 0 30px #00f7ff;margin-top:15px}
+.input{width:100%;padding:12px;border-radius:8px;border:1px solid #333;background:#000;color:white;margin:7px 0}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,0.95);border-top:1px solid #00f7ff;display:flex;justify-content:space-around;padding:8px 0;z-index:20}
+.nav-item{color:#888;text-align:center;font-size:11px;cursor:pointer;padding:4px 10px;border-radius:8px}
+.nav-item.active{color:#00f7ff;background:rgba(0,247,255,0.1)}
+.whatsapp{margin:15px;background:#25D366;color:white;padding:13px;border-radius:12px;text-align:center;font-weight:800;text-decoration:none;display:block}
+.team-level{display:flex;justify-content:space-between;background:rgba(0,247,255,0.08);padding:8px 10px;border-radius:8px;margin:5px 0;font-size:12px}
+.ref-box{background:#000;border:1px dashed #00f7ff;padding:10px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;margin:10px 0}
+.call-btn{display:block;background:#00f7ff;color:black;padding:11px;border-radius:8px;text-align:center;font-weight:900;text-decoration:none;margin:8px 0;font-size:14px}
+</style>
+</head>
+<body>
+<div class="header"><div class="logo">MIRROR SCI-FI</div><div style="font-size:11px" id="userPhone">User: 0780...</div></div>
+
+<div class="balance-card">
+ <div class="b-row"><span class="b-label">Real Balance</span><span class="b-value" id="realBal">0 RWF</span></div>
+ <div class="b-row"><span class="b-label">Welcome Bonus</span><span class="b-value locked" id="welcomeBal">2,000 RWF <small>LOCKED</small></span></div>
+ <div class="b-row"><span class="b-label">Daily Income</span><span class="b-value" id="dailyBal">0 RWF</span></div>
+ <div class="b-row"><span class="b-label">Total Earnings</span><span class="b-value" id="totalBal">0 RWF</span></div>
+ <div id="countdownBox" style="display:none" class="countdown">⏳ Next Claim: <span id="timer">24:00:00</span></div>
+ <button class="btn btn-claim" id="claimBtn" style="display:none" onclick="claimDaily()">CLAIM WELCOME + DAILY</button>
+ <div id="welcomeMsg" style="margin-top:8px;font-size:11px;color:#ffaa00"></div>
+</div>
+
+<div class="actions"><button class="btn btn-deposit" onclick="openDeposit()">DEPOSIT</button><button class="btn btn-withdraw" onclick="openWithdraw()">WITHDRAW</button></div>
+
+<a class="whatsapp" href="https://chat.whatsapp.com/HTi8rrw6kLG9Q7uYyp66EC?s=sh&p=a&mlu=4&ilr=4&iam=2" target="_blank">💬 JOIN WHATSAPP GROUP - Kanda hano</a>
+
+<div class="plans" id="artSection">
+ <h3 style="margin-bottom:10px;color:#00f7ff">🎨 ART TOOLS - Plans + Calculator</h3>
+ <div class="plan-card"><img src="parachute-pod.png"><div class="plan-info"><div class="plan-name">Parachute Pod</div><div class="plan-price">Price: 7,000 RWF | 30 Days</div><div class="plan-income">Daily: 700 RWF | Total 21,000 RWF</div></div><button class="buy-btn" onclick="buyPlan('Parachute Pod',7000,700)">BUY</button></div>
+ <div class="plan-card"><img src="shoot-gun.png"><div class="plan-info"><div class="plan-name">Shoot Gun</div><div class="plan-price">Price: 15,000 RWF | 30 Days</div><div class="plan-income">Daily: 1,800 RWF | Total 54,000 RWF</div></div><button class="buy-btn" onclick="buyPlan('Shoot Gun',15000,1800)">BUY</button></div>
+ <div class="plan-card"><img src="hover-bike.png"><div class="plan-info"><div class="plan-name">Hover Bike</div><div class="plan-price">Price: 30,000 RWF | 30 Days</div><div class="plan-income">Daily: 4,000 RWF | Total 120,000 RWF</div></div><button class="buy-btn" onclick="buyPlan('Hover Bike',30000,4000)">BUY</button></div>
+ <div class="plan-card"><img src="spaceship.png"><div class="plan-info"><div class="plan-name">Spaceship</div><div class="plan-price">Price: 50,000 RWF | 30 Days</div><div class="plan-income">Daily: 7,500 RWF | Total 225,000 RWF</div></div><button class="buy-btn" onclick="buyPlan('Spaceship',50000,7500)">BUY</button></div>
+</div>
+
+<div class="history"><h4 style="color:#00f7ff;margin-bottom:8px">📜 History - Supabase Active</h4><div id="historyList"><div style="font-size:12px;color:#888">No transactions yet</div></div></div>
+<div style="height:90px"></div>
+
+<div class="bottom-nav">
+ <div class="nav-item active" id="navDash" onclick="switchTab('dash')">🏠<br>Dashboard</div>
+ <div class="nav-item" id="navArt" onclick="switchTab('art')">🎨<br>Art Tool</div>
+ <div class="nav-item" id="navTeam" onclick="openTeam()">👥<br>Team</div>
+ <div class="nav-item" onclick="logout()">🚪<br>Logout</div>
+</div>
+
+<div class="modal" id="depModal"><div class="modal-box">
+  <h3 style="color:#00f7ff">Deposit - Min 7000 RWF</h3>
+  <div style="background:rgba(0,247,255,0.12);padding:12px;border-radius:10px;margin:10px 0;font-size:13px">
+   <b>Payment Code:</b> 2181876<br><b>Name:</b> Sifa<br><b>Method:</b> MoMo Code<br>
+  </div>
+  <a class="call-btn" href="tel:*182*8*1*2181876%23" onclick="setTimeout(()=>{if(!confirm('Call *182*8*1*2181876# ?')){return false;}},100)">📞 Kanda hano uhamagare *182*8*1*2181876#</a>
+  <div style="font-size:11px;color:#ffaa00;text-align:center">Code: 2181876 - Andika Transaction ID nyuma yo kwishyura</div>
+  <input class="input" id="depAmount" type="number" value="7000">
+  <input class="input" id="transId" placeholder="Transaction ID">
+  <button class="btn btn-deposit" style="width:100%" onclick="submitDeposit()">SUBMIT - Waiting Admin Approve</button>
+  <button class="btn" style="width:100%;margin-top:8px;background:#222;color:white" onclick="closeModal('depModal')">CLOSE</button>
+</div></div>
+
+<div class="modal" id="withModal"><div class="modal-box">
+  <h3 style="color:#00f7ff">Withdraw - Min 1000 RWF</h3><div style="font-size:11px;color:#aaa;margin:6px 0">Fee 15% | 8:00 AM - 23:00 PM only</div>
+  <input class="input" id="withAmount" type="number" placeholder="Amount Min 1000"><input class="input" id="withPhone" placeholder="MoMo Number"><div id="feeInfo" style="font-size:12px;color:#00ff88"></div>
+  <button class="btn btn-withdraw" style="width:100%;border:1px solid #00f7ff" onclick="submitWithdraw()">REQUEST WITHDRAW</button>
+  <button class="btn" style="width:100%;margin-top:8px;background:#222;color:white" onclick="closeModal('withModal')">CLOSE</button>
+</div></div>
+
+<div class="modal" id="teamModal"><div class="modal-box">
+  <h3 style="color:#00f7ff">👥 Team Referral - Icyumba</h3>
+  <div class="ref-box"><span style="font-size:12px">Code: <b id="refCode">MIRROR-XXXX</b></span><button class="buy-btn" style="padding:5px 10px" onclick="copyRef()">COPY LINK</button></div>
+  <input class="input" id="refLink" readonly style="font-size:11px">
+  <div style="margin:10px 0">
+   <div class="team-level"><span>Lev1 - Direct Invite</span><b style="color:#00ff88">20%</b></div>
+   <div class="team-level"><span>Lev2</span><b style="color:#00f7ff">1.5%</b></div>
+   <div class="team-level"><span>Lev3</span><b style="color:#ffaa00">1%</b></div>
+  </div>
+  <h4 style="color:#00ff88;margin:10px 0 5px">🏠 Abamwinjiriyeho + Plans</h4>
+  <div id="teamMembers" style="background:#000;padding:10px;border-radius:8px;max-height:220px;overflow-y:auto;font-size:11px">Loading...</div>
+  <div style="margin-top:10px;background:rgba(0,255,136,0.1);padding:10px;border-radius:8px;font-size:12px;display:flex;justify-content:space-between"><span>Commission: <b id="teamComm">0 RWF</b></span><span>Members: <b id="teamCount">0</b></span></div>
+  <button class="btn" style="width:100%;margin-top:10px;background:#222;color:white" onclick="closeModal('teamModal')">CLOSE</button>
+</div></div>
+
+<script>
+let state=JSON.parse(localStorage.getItem('mirror_state')||'{"real":0,"welcome":2000,"welcomeLocked":true,"daily":0,"total":0,"lastClaim":0,"hasDeposited":false,"history":[],"refCode":"MIRROR-'+Math.floor(Math.random()*9000+1000)+'","team":[]}');
+if(!state.refCode){state.refCode='MIRROR-'+Math.floor(Math.random()*9000+1000);}
+let currentUser=JSON.parse(localStorage.getItem('mirror_user')||'{"id":"user_'+Date.now()+'","phone":"0780"}');
+document.getElementById('userPhone').innerText='User: '+(currentUser.phone||currentUser.id.slice(0,8));
+
+function getProductionDomain(){
+  let origin = window.location.origin;
+  if(origin.includes('localhost') || origin.startsWith('file://') || origin.includes('127.0.0.1') || origin.includes('storage/emulated')){
+    return 'https://mirror-sci-fi.vercel.app';
+  }
+  return origin;
+}
+
+function save(){localStorage.setItem('mirror_state',JSON.stringify(state));render();try{supabaseClient.from('users').upsert({id:currentUser.id,phone:currentUser.phone,real_balance:state.real,welcome_bonus:state.welcome,welcome_locked:state.welcomeLocked,daily_income:state.daily,total_earnings:state.total,last_claim:state.lastClaim?new Date(state.lastClaim).toISOString():null,ref_code:state.refCode}).then(()=>{});}catch(e){}}
+function render(){
+ document.getElementById('realBal').innerText=state.real.toLocaleString()+' RWF';
+ let wEl=document.getElementById('welcomeBal');
+ if(state.welcomeLocked){wEl.innerHTML=state.welcome.toLocaleString()+' RWF <small>LOCKED</small>';wEl.className='b-value locked';}
+ else{if(state.welcome>0){wEl.innerHTML=state.welcome.toLocaleString()+' RWF <small style="background:#00ff88;color:black">UNLOCKED</small>';}else{wEl.innerHTML='0 RWF (Claimed to Real)';}wEl.className='b-value unlocked';}
+ document.getElementById('dailyBal').innerText=state.daily.toLocaleString()+' RWF';
+ document.getElementById('totalBal').innerText=state.total.toLocaleString()+' RWF';
+ let msg=document.getElementById('welcomeMsg');let claimBtn=document.getElementById('claimBtn');let cdBox=document.getElementById('countdownBox');
+ if(state.welcomeLocked && !state.hasDeposited){
+   msg.innerHTML='🔒 Welcome Bonus <b>'+state.welcome.toLocaleString()+' RWF</b> irahari! Irafunze gusa. Kora First Deposit Min 7000 Code <b>2181876 Sifa</b> kugirango ijye muri Real Balance!';
+   claimBtn.style.display='none';cdBox.style.display='none';
+ } else if(!state.welcomeLocked && state.welcome>0){
+   msg.innerHTML='✅ Admin yemeye! Welcome <b>'+state.welcome+' RWF</b> + Daily <b>'+state.daily+' RWF</b> ready!';
+   claimBtn.style.display='block';claimBtn.innerText='CLAIM '+ (state.welcome+state.daily).toLocaleString() +' RWF TO REAL BALANCE';cdBox.style.display='none';
+ } else {if(state.lastClaim) checkTimer(); else {msg.innerText='✅ Active.';}}
+ let hList=document.getElementById('historyList');
+ if(state.history.length===0) hList.innerHTML='<div style="font-size:12px;color:#888">No transactions yet</div>';
+ else hList.innerHTML=state.history.map(h=>`<div class="hist-item"><span>${h.type} - ${h.amount} RWF</span><span style="color:${h.status==='approved'?'#00ff88':'#ffaa00'}">${h.status}</span></div>`).join('');
+ let domain = getProductionDomain();
+ document.getElementById('refCode').innerText=state.refCode;
+ document.getElementById('refLink').value=domain+'/index.html?ref='+state.refCode;
+}
+function switchTab(t){document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));if(t==='dash'){document.getElementById('navDash').classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}if(t==='art'){document.getElementById('navArt').classList.add('active');document.getElementById('artSection').scrollIntoView({behavior:'smooth'});}}
+function openDeposit(){document.getElementById('depModal').classList.add('active')}
+function openWithdraw(){let h=new Date().getHours();if(h<8||h>=23){alert('❌ Withdrawal 8AM-11PM only');return;}document.getElementById('withModal').classList.add('active')}
+function closeModal(id){document.getElementById(id).classList.remove('active');document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));document.getElementById('navDash').classList.add('active');}
+function openTeam(){
+ document.getElementById('teamModal').classList.add('active');
+ document.getElementById('navTeam').classList.add('active');
+ let domain = getProductionDomain();
+ document.getElementById('refCode').innerText=state.refCode;
+ document.getElementById('refLink').value=domain+'/index.html?ref='+state.refCode;
+ // REAL TEAM - no demo, only real from state.team
+ let all = state.team || [];
+ if(all.length===0){
+   document.getElementById('teamMembers').innerHTML='<div style="color:#888;padding:20px;text-align:center">👋 Nta muntu uramwinjiraho.<br><br>Sangiza link yawe ya referral!<br><br>Abantu niyandikisha bakoresheje code yawe, bazagaragara hano + commission yawe (Lev1 20%, Lev2 1.5%, Lev3 1%)</div>';
+ } else {
+   let html=all.map(m=>`<div style="padding:7px 0;border-bottom:1px solid #222;display:flex;justify-content:space-between"><span>👤 ${m.phone}<br><small style="color:#aaa">${m.plan||'No plan'} ${m.bought?'✅ Bought':''} - ${m.level||'Lev1'}</small></span><span style="color:#00ff88;font-weight:700">${m.commission||0} RWF</span></div>`).join('');
+   document.getElementById('teamMembers').innerHTML=html;
+ }
+ let totalComm = all.reduce((a,b)=>a+(b.commission||0),0);
+ document.getElementById('teamComm').innerText=totalComm.toLocaleString()+' RWF';
+ document.getElementById('teamCount').innerText=all.length;
+}
+function copyRef(){
+ let link=document.getElementById('refLink').value;
+ let code=document.getElementById('refCode').innerText;
+ let text=`Join Mirror Sci-Fi! 🚀 Use my code ${code} Link: ${link}`;
+ navigator.clipboard.writeText(text).then(()=>{alert('✅ Referral Link Copied!\\n\\n'+text+'\\n\\nIyo umuntu yiyandikishije kuri '+link+' code yawe ya '+code+' izahita ifatwa!');}).catch(()=>{prompt('Copy your referral link:',text);});
+}
+async function submitDeposit(){
+ let amt=parseInt(document.getElementById('depAmount').value);let tid=document.getElementById('transId').value;
+ if(amt<7000){alert('Min 7000');return}if(!tid){alert('Transaction ID');return}
+ state.history.unshift({type:'Deposit Code 2181876 Sifa TID:'+tid,amount:amt,status:'pending'});state.hasDeposited=true;save();
+ try{await supabaseClient.from('deposits').insert({user_id:currentUser.id,amount:amt,trans_id:tid,code:'2181876',name:'Sifa',status:'pending'});await supabaseClient.from('transactions').insert({user_id:currentUser.id,type:'Deposit',amount:amt,status:'pending'});}catch(e){}
+ alert('✅ Deposit Submitted! Welcome izajya muri Real Balance nyuma ya approve!');closeModal('depModal');
+ if(confirm('Demo: Admin Approve now? (for test - kuri GitHub admin azabikora)')){state.welcomeLocked=false;if(state.welcome===0)state.welcome=2000;if(state.daily===0)state.daily=700;save();render();}
+}
+function claimDaily(){
+ let add=state.welcome+state.daily;if(add===0){alert('No bonus - wait 24h');return;}
+ state.real+=add;state.total+=add;state.history.unshift({type:'Claim -> Real Balance',amount:add,status:'approved'});state.welcome=0;state.lastClaim=Date.now();save();alert('✅ '+add.toLocaleString()+' RWF yagiye muri Real Balance!');render();
+}
+function checkTimer(){
+ if(!state.lastClaim)return;let diff=Date.now()-state.lastClaim;let remain=24*3600*1000-diff;let cdBox=document.getElementById('countdownBox');
+ if(remain>0){cdBox.style.display='block';let h=Math.floor(remain/3600000);let m=Math.floor((remain%3600000)/60000);let s=Math.floor((remain%60000)/1000);document.getElementById('timer').innerText=`${h}:${m}:${s}`;setTimeout(checkTimer,1000);document.getElementById('claimBtn').style.display='none';}
+ else{cdBox.style.display='none';if(state.real>0||state.daily>0){document.getElementById('claimBtn').style.display='block';document.getElementById('claimBtn').innerText='CLAIM DAILY '+state.daily+' RWF';}}
+}
+async function submitWithdraw(){
+ let amt=parseInt(document.getElementById('withAmount').value);let phone=document.getElementById('withPhone').value;
+ let h=new Date().getHours();if(h<8||h>=23){alert('Closed 8AM-11PM');return}
+ if(amt<1000){alert('Min 1000');return}if(amt>state.real){alert('Insufficient Real: '+state.real);return}if(!phone){alert('Phone');return}
+ let fee=Math.floor(amt*0.15);let net=amt-fee;state.real-=amt;state.history.unshift({type:'Withdraw to '+phone+' Net:'+net,amount:amt,status:'pending'});save();
+ try{await supabaseClient.from('withdrawals').insert({user_id:currentUser.id,amount:amt,fee:fee,net:net,phone:phone,status:'pending'});}catch(e){}
+ alert(`✅ Withdraw: ${amt} Fee ${fee} You get ${net} RWF`);closeModal('withModal');
+}
+function buyPlan(name,price,daily){
+ if(state.welcomeLocked){alert('🔒 Welcome irahari ariko irafunze. Kora First Deposit Min 7000!');openDeposit();return;}
+ if(state.real<price){alert('Real Balance nkeya: '+state.real+' RWF. Deposit '+price);openDeposit();return;}
+ if(confirm(`Gura ${name}? Price ${price} Daily ${daily} Total ${daily*30}`)){
+   state.real-=price;state.daily=daily;state.history.unshift({type:'Buy '+name,amount:price,status:'approved'});save();alert('✅ '+name+' Purchased!');
+ }
+}
+function logout(){localStorage.removeItem('mirror_user');location.href='index.html';}
+document.getElementById('withAmount')?.addEventListener('input',e=>{let v=parseInt(e.target.value)||0;let f=Math.floor(v*0.15);document.getElementById('feeInfo').innerText=v?`Fee 15%: ${f} RWF | You get: ${v-f} RWF`:'';});
+render();checkTimer();
+</script>
+</body>
+</html>
