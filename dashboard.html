@@ -73,8 +73,8 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:
  <h3 style="margin-bottom:10px;color:#00f7ff">🎨 ART TOOLS - Plans + Calculator</h3>
  <div class="plan-card"><img src="parachute-pod.png"><div class="plan-info"><div class="plan-name">Parachute Pod</div><div class="plan-price">Price: 7,000 RWF | 30 Days</div><div class="plan-income">Daily: 700 RWF | Total 21,000 RWF</div></div><button class="buy-btn" onclick="buyPlan('Parachute Pod',7000,700)">BUY</button></div>
  <div class="plan-card"><img src="shoot-gun.png"><div class="plan-info"><div class="plan-name">Shoot Gun</div><div class="plan-price">Price: 15,000 RWF | 30 Days</div><div class="plan-income">Daily: 1,800 RWF | Total 54,000 RWF</div></div><button class="buy-btn" onclick="buyPlan('Shoot Gun',15000,1800)">BUY</button></div>
- <div class="plan-card"><img src="hover-bike.png"><div class="plan-info"><div class="plan-name">Hover Bike</div><div class="plan-price">Price: 30,000 RWF | 30 Days</div><div class="plan-income">Daily: 4,000 RWF | Total 120,000 RWF</div></div><button class="buy-btn" onclick="buyPlan('Hover Bike',30000,4000)">BUY</button></div>
- <div class="plan-card"><img src="spaceship.png"><div class="plan-info"><div class="plan-name">Spaceship</div><div class="plan-price">Price: 50,000 RWF | 30 Days</div><div class="plan-income">Daily: 7,500 RWF | Total 225,000 RWF</div></div><button class="buy-btn" onclick="buyPlan('Spaceship',50000,7500)">BUY</button></div>
+ <div class="plan-card"><img src="hover-bike.png"><div class="plan-info"><div class="plan-name">Hover Bike</div><div class="plan-price">Price: 30,000 RWF | 30 Days</div><div class="plan-income">Daily: 3,000 RWF | Total 90,000 RWF</div></div><button class="buy-btn" onclick="buyPlan('Hover Bike',30000,3000)">BUY</button></div>
+ <div class="plan-card"><img src="spaceship.png"><div class="plan-info"><div class="plan-name">Spaceship</div><div class="plan-price">Price: 50,000 RWF | 30 Days</div><div class="plan-income">Daily: 5,000 RWF | Total 150,000 RWF</div></div><button class="buy-btn" onclick="buyPlan('Spaceship',50000,5000)">BUY</button></div>
 </div>
 
 <div class="history"><h4 style="color:#00f7ff;margin-bottom:8px">📜 History - Supabase Active</h4><div id="historyList"><div style="font-size:12px;color:#888">No transactions yet</div></div></div>
@@ -92,23 +92,27 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:
   <div style="background:rgba(0,247,255,0.12);padding:12px;border-radius:10px;margin:10px 0;font-size:13px">
    <b>Payment Code:</b> 2181876<br><b>Name:</b> Sifa<br><b>Method:</b> MoMo Code<br>
   </div>
-  <a class="call-btn" href="tel:*182*8*1*2181876%23" onclick="setTimeout(()=>{if(!confirm('Call *182*8*1*2181876# ?')){return false;}},100)">📞 Kanda hano uhamagare *182*8*1*2181876#</a>
-  <div style="font-size:11px;color:#ffaa00;text-align:center">Code: 2181876 - Andika Transaction ID nyuma yo kwishyura</div>
-  <input class="input" id="depAmount" type="number" value="7000">
-  <input class="input" id="transId" placeholder="Transaction ID">
+  <a class="call-btn" href="tel:*182*8*1*2181876%23">📞 Kanda hano uhamagare *182*8*1*2181876#</a>
+  <div style="font-size:11px;color:#ffaa00;text-align:center;margin:5px 0">Code: 2181876 - Shyiramo izina + Transaction ID</div>
+  <input class="input" id="depName" placeholder="Full Name - Izina mwishyuriyeho (ngombwa)">
+  <input class="input" id="depAmount" type="number" value="7000" placeholder="Amount">
+  <input class="input" id="transId" placeholder="Transaction ID / MoMo Code">
   <button class="btn btn-deposit" style="width:100%" onclick="submitDeposit()">SUBMIT - Waiting Admin Approve</button>
   <button class="btn" style="width:100%;margin-top:8px;background:#222;color:white" onclick="closeModal('depModal')">CLOSE</button>
 </div></div>
 
 <div class="modal" id="withModal"><div class="modal-box">
   <h3 style="color:#00f7ff">Withdraw - Min 1000 RWF</h3><div style="font-size:11px;color:#aaa;margin:6px 0">Fee 15% | 8:00 AM - 23:00 PM only</div>
-  <input class="input" id="withAmount" type="number" placeholder="Amount Min 1000"><input class="input" id="withPhone" placeholder="MoMo Number"><div id="feeInfo" style="font-size:12px;color:#00ff88"></div>
+  <input class="input" id="withName" placeholder="Full Name - Izina rya MoMo (ngombwa)">
+  <input class="input" id="withAmount" type="number" placeholder="Amount Min 1000">
+  <input class="input" id="withPhone" placeholder="MoMo Number">
+  <div id="feeInfo" style="font-size:12px;color:#00ff88"></div>
   <button class="btn btn-withdraw" style="width:100%;border:1px solid #00f7ff" onclick="submitWithdraw()">REQUEST WITHDRAW</button>
   <button class="btn" style="width:100%;margin-top:8px;background:#222;color:white" onclick="closeModal('withModal')">CLOSE</button>
 </div></div>
 
 <div class="modal" id="teamModal"><div class="modal-box">
-  <h3 style="color:#00f7ff">👥 Team Referral - Icyumba</h3>
+  <h3 style="color:#00f7ff">👥 Team Referral</h3>
   <div class="ref-box"><span style="font-size:12px">Code: <b id="refCode">MIRROR-XXXX</b></span><button class="buy-btn" style="padding:5px 10px" onclick="copyRef()">COPY LINK</button></div>
   <input class="input" id="refLink" readonly style="font-size:11px">
   <div style="margin:10px 0">
@@ -125,7 +129,8 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:
 <script>
 let state=JSON.parse(localStorage.getItem('mirror_state')||'{"real":0,"welcome":2000,"welcomeLocked":true,"daily":0,"total":0,"lastClaim":0,"hasDeposited":false,"history":[],"refCode":"MIRROR-'+Math.floor(Math.random()*9000+1000)+'","team":[]}');
 if(!state.refCode){state.refCode='MIRROR-'+Math.floor(Math.random()*9000+1000);}
-let currentUser=JSON.parse(localStorage.getItem('mirror_user')||'{"id":"user_'+Date.now()+'","phone":"0780"}');
+let currentUser=JSON.parse(localStorage.getItem('mirror_user')||localStorage.getItem('mirror_user_data')||'{"id":"user_'+Date.now()+'","phone":"0780"}');
+try{if(localStorage.getItem('mirror_phone')){currentUser.phone=localStorage.getItem('mirror_phone');}if(localStorage.getItem('mirror_user_id')){currentUser.id=localStorage.getItem('mirror_user_id');}}catch(e){}
 document.getElementById('userPhone').innerText='User: '+(currentUser.phone||currentUser.id.slice(0,8));
 
 function getProductionDomain(){
@@ -169,7 +174,6 @@ function openTeam(){
  let domain = getProductionDomain();
  document.getElementById('refCode').innerText=state.refCode;
  document.getElementById('refLink').value=domain+'/index.html?ref='+state.refCode;
- // REAL TEAM - no demo, only real from state.team
  let all = state.team || [];
  if(all.length===0){
    document.getElementById('teamMembers').innerHTML='<div style="color:#888;padding:20px;text-align:center">👋 Nta muntu uramwinjiraho.<br><br>Sangiza link yawe ya referral!<br><br>Abantu niyandikisha bakoresheje code yawe, bazagaragara hano + commission yawe (Lev1 20%, Lev2 1.5%, Lev3 1%)</div>';
@@ -185,15 +189,19 @@ function copyRef(){
  let link=document.getElementById('refLink').value;
  let code=document.getElementById('refCode').innerText;
  let text=`Join Mirror Sci-Fi! 🚀 Use my code ${code} Link: ${link}`;
- navigator.clipboard.writeText(text).then(()=>{alert('✅ Referral Link Copied!\\n\\n'+text+'\\n\\nIyo umuntu yiyandikishije kuri '+link+' code yawe ya '+code+' izahita ifatwa!');}).catch(()=>{prompt('Copy your referral link:',text);});
+ navigator.clipboard.writeText(text).then(()=>{alert('✅ Referral Link Copied!\\n\\n'+text);}).catch(()=>{prompt('Copy your referral link:',text);});
 }
 async function submitDeposit(){
- let amt=parseInt(document.getElementById('depAmount').value);let tid=document.getElementById('transId').value;
- if(amt<7000){alert('Min 7000');return}if(!tid){alert('Transaction ID');return}
- state.history.unshift({type:'Deposit Code 2181876 Sifa TID:'+tid,amount:amt,status:'pending'});state.hasDeposited=true;save();
- try{await supabaseClient.from('deposits').insert({user_id:currentUser.id,amount:amt,trans_id:tid,code:'2181876',name:'Sifa',status:'pending'});await supabaseClient.from('transactions').insert({user_id:currentUser.id,type:'Deposit',amount:amt,status:'pending'});}catch(e){}
- alert('✅ Deposit Submitted! Welcome izajya muri Real Balance nyuma ya approve!');closeModal('depModal');
- if(confirm('Demo: Admin Approve now? (for test - kuri GitHub admin azabikora)')){state.welcomeLocked=false;if(state.welcome===0)state.welcome=2000;if(state.daily===0)state.daily=700;save();render();}
+ let name=document.getElementById('depName').value.trim();
+ let amt=parseInt(document.getElementById('depAmount').value);
+ let tid=document.getElementById('transId').value.trim();
+ if(!name){alert('Shyiramo Full Name - Izina mwishyuriyeho');return}
+ if(amt<7000){alert('Min 7000');return}
+ if(!tid){alert('Transaction ID');return}
+ state.history.unshift({type:'Deposit '+name+' Code 2181876 TID:'+tid,amount:amt,status:'pending'});state.hasDeposited=true;save();
+ try{await supabaseClient.from('transactions').insert({user_id:currentUser.id,type:'Deposit - '+name+' - TID:'+tid,amount:amt,status:'pending'});}catch(e){}
+ alert('✅ Deposit Submitted! Izina: '+name+'\\nWelcome izajya muri Real Balance nyuma ya approve!');closeModal('depModal');
+ if(confirm('Demo: Admin Approve now? (for test)')){state.welcomeLocked=false;if(state.welcome===0)state.welcome=2000;if(state.daily===0)state.daily=700;save();render();}
 }
 function claimDaily(){
  let add=state.welcome+state.daily;if(add===0){alert('No bonus - wait 24h');return;}
@@ -205,12 +213,18 @@ function checkTimer(){
  else{cdBox.style.display='none';if(state.real>0||state.daily>0){document.getElementById('claimBtn').style.display='block';document.getElementById('claimBtn').innerText='CLAIM DAILY '+state.daily+' RWF';}}
 }
 async function submitWithdraw(){
- let amt=parseInt(document.getElementById('withAmount').value);let phone=document.getElementById('withPhone').value;
+ let name=document.getElementById('withName').value.trim();
+ let amt=parseInt(document.getElementById('withAmount').value);
+ let phone=document.getElementById('withPhone').value.trim();
  let h=new Date().getHours();if(h<8||h>=23){alert('Closed 8AM-11PM');return}
- if(amt<1000){alert('Min 1000');return}if(amt>state.real){alert('Insufficient Real: '+state.real);return}if(!phone){alert('Phone');return}
- let fee=Math.floor(amt*0.15);let net=amt-fee;state.real-=amt;state.history.unshift({type:'Withdraw to '+phone+' Net:'+net,amount:amt,status:'pending'});save();
- try{await supabaseClient.from('withdrawals').insert({user_id:currentUser.id,amount:amt,fee:fee,net:net,phone:phone,status:'pending'});}catch(e){}
- alert(`✅ Withdraw: ${amt} Fee ${fee} You get ${net} RWF`);closeModal('withModal');
+ if(!name){alert('Shyiramo Full Name - Izina rya MoMo');return}
+ if(amt<1000){alert('Min 1000');return}
+ if(amt>state.real){alert('Insufficient Real: '+state.real);return}
+ if(!phone){alert('Phone');return}
+ let fee=Math.floor(amt*0.15);let net=amt-fee;state.real-=amt;
+ state.history.unshift({type:'Withdraw '+name+' to '+phone+' Net:'+net,amount:amt,status:'pending'});save();
+ try{await supabaseClient.from('transactions').insert({user_id:currentUser.id,type:'Withdraw - '+name+' - '+phone+' Net:'+net,amount:amt,status:'pending'});}catch(e){}
+ alert(`✅ Withdraw: ${amt} RWF\\nName: ${name}\\nPhone: ${phone}\\nFee ${fee} | You get ${net} RWF`);closeModal('withModal');
 }
 function buyPlan(name,price,daily){
  if(state.welcomeLocked){alert('🔒 Welcome irahari ariko irafunze. Kora First Deposit Min 7000!');openDeposit();return;}
@@ -219,7 +233,7 @@ function buyPlan(name,price,daily){
    state.real-=price;state.daily=daily;state.history.unshift({type:'Buy '+name,amount:price,status:'approved'});save();alert('✅ '+name+' Purchased!');
  }
 }
-function logout(){localStorage.removeItem('mirror_user');location.href='index.html';}
+function logout(){localStorage.clear();location.href='index.html';}
 document.getElementById('withAmount')?.addEventListener('input',e=>{let v=parseInt(e.target.value)||0;let f=Math.floor(v*0.15);document.getElementById('feeInfo').innerText=v?`Fee 15%: ${f} RWF | You get: ${v-f} RWF`:'';});
 render();checkTimer();
 </script>
