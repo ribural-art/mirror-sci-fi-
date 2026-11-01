@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="rw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mirror Sci-Fi - ADMIN PRO MAX</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://evkzhpiuxkaejegswlam.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2a3pocGl1eGthZWplZ3N3bGFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDg5MzQsImV4cCI6MjEwODA4NDkzNH0.Yu-2Djq7sWY1bjHY-GnpVLpWr70nls7bDF0Bd_FLcSA";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// SECURITY: password hidden - default rcc but not shown in UI
+const ADMIN_USER="chairman";
+const ADMIN_PASS_DEFAULT="rcc";
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{background:#050a1e;color:white;min-height:100vh}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at center, #0f1a3d 0%, #050a1e 100%)}
+.login-box{background:#0f1429;border:1px solid #00f7ff;border-radius:16px;padding:24px;width:92%;max-width:380px;box-shadow:0 0 30px rgba(0,247,255,0.3)}
+.input{width:100%;padding:12px;border-radius:8px;border:1px solid #333;background:#000;color:white;margin:8px 0}
+.btn{padding:12px;border-radius:10px;border:none;font-weight:800;cursor:pointer;width:100%}
+.btn-primary{background:#00f7ff;color:black;box-shadow:0 0 15px #00f7ff}
+.header{background:rgba(0,0,0,0.8);padding:12px 15px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ff3b3b;position:sticky;top:0;z-index:10}
+.logo{font-weight:900;letter-spacing:2px;color:#ff3b3b;text-shadow:0 0 10px #ff3b3b}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px}
+@media(min-width:700px){.stats{grid-template-columns:repeat(3,1fr)}}
+.stat-card{background:linear-gradient(135deg,rgba(255,59,59,0.15),rgba(0,247,255,0.1));border:1px solid rgba(255,59,59,0.4);border-radius:12px;padding:12px}
+.stat-label{font-size:11px;color:#aaa}
+.stat-value{font-size:18px;font-weight:900;margin-top:4px}
+.tabs{display:flex;gap:6px;margin:15px;overflow-x:auto}
+.tab{padding:8px 14px;border-radius:20px;border:1px solid #333;background:#111;color:#888;font-size:12px;cursor:pointer;white-space:nowrap}
+.tab.active{background:#ff3b3b;color:white;border-color:#ff3b3b}
+.section{margin:15px;background:rgba(0,0,0,0.5);border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,0.08);display:none}
+.section.active{display:block}
+.row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:11px;gap:8px}
+.badge{padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700}
+.badge-pending{background:#ffaa00;color:black}
+.badge-approved{background:#00ff88;color:black}
+.badge-rejected{background:#ff3b3b;color:white}
+.actions{display:flex;gap:4px;flex-wrap:wrap}
+.small-btn{padding:4px 8px;border-radius:6px;border:none;font-size:10px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div id="loginScreen" class="login-wrap">
+  <div class="login-box">
+    <h2 style="color:#ff3b3b;text-align:center">🔐 ADMIN PRO MAX</h2>
+    <p style="font-size:11px;color:#aaa;text-align:center;margin:6px 0">Control Room - Chairman Only</p>
+    <input class="input" id="adminUser" placeholder="Username">
+    <input class="input" id="adminPass" type="password" placeholder="••••••••">
+    <button class="btn btn-primary" onclick="adminLogin()">LOGIN TO CONTROL ROOM</button>
+    <p style="font-size:10px;color:#ffaa00;margin-top:10px;text-align:center">⚠️ Secure Access Only</p>
+  </div>
+</div>
+
+<div id="adminPanel" style="display:none">
+  <div class="header">
+    <div class="logo">ADMIN PRO MAX - CHAIRMAN</div>
+    <div style="display:flex;gap:8px">
+      <button class="small-btn" style="background:#222;color:white" onclick="loadAll()">🔄 Refresh</button>
+      <button class="small-btn" style="background:#ff3b3b;color:white" onclick="adminLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat-card"><div class="stat-label">Users Today / Total</div><div class="stat-value" id="statUsers">0 / 0</div></div>
+    <div class="stat-card"><div class="stat-label">Balance IN (Deposits Approved)</div><div class="stat-value" id="statIn" style="color:#00ff88">0 RWF</div></div>
+    <div class="stat-card"><div class="stat-label">Balance OUT (Withdrawals)</div><div class="stat-value" id="statOut" style="color:#ff3b3b">0 RWF</div></div>
+    <div class="stat-card"><div class="stat-label">Daily Income Today</div><div class="stat-value" id="statDaily" style="color:#00f7ff">0 RWF</div></div>
+    <div class="stat-card"><div class="stat-label">Pending Deposits</div><div class="stat-value" id="statDepPend" style="color:#ffaa00">0</div></div>
+    <div class="stat-card"><div class="stat-label">Pending Withdrawals</div><div class="stat-value" id="statWithPend" style="color:#ffaa00">0</div></div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchAdminTab('users')">👥 Users</div>
+    <div class="tab" onclick="switchAdminTab('deposits')">💰 Deposits (2181876 Sifa)</div>
+    <div class="tab" onclick="switchAdminTab('withdrawals')">💸 Withdrawals</div>
+    <div class="tab" onclick="switchAdminTab('referrals')">🎁 Referrals</div>
+    <div class="tab" onclick="switchAdminTab('settings')">⚙️ Settings</div>
+  </div>
+  <div id="sec-users" class="section active"><h3 style="color:#ff3b3b;margin-bottom:8px">👥 All Users</h3><div id="usersList">Loading...</div></div>
+  <div id="sec-deposits" class="section"><h3 style="color:#00ff88">💰 Deposits</h3><div id="depositsList">Loading...</div></div>
+  <div id="sec-withdrawals" class="section"><h3 style="color:#ffaa00">💸 Withdrawals</h3><div id="withdrawalsList">Loading...</div></div>
+  <div id="sec-referrals" class="section"><h3 style="color:#00f7ff">🎁 Referral Bonus</h3><div id="referralsList">Loading...</div></div>
+  <div id="sec-settings" class="section"><h3>⚙️ Settings</h3><div style="background:#111;padding:12px;border-radius:10px;margin-top:10px"><input class="input" id="newAdminPass" type="password" placeholder="New password (hidden)"><button class="btn btn-primary" style="width:auto;padding:8px 14px" onclick="changeAdminPass()">Save New Password</button></div></div>
+</div>
+
+<script>
+function getAdminPass(){return localStorage.getItem('admin_pass')||ADMIN_PASS_DEFAULT;}
+function adminLogin(){
+  let u=document.getElementById('adminUser').value.trim().toLowerCase();
+  let p=document.getElementById('adminPass').value.trim();
+  if(u===ADMIN_USER && p===getAdminPass()){
+    sessionStorage.setItem('admin_auth','true');
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('adminPanel').style.display='block';
+    loadAll();
+  }else{alert('❌ Wrong Chairman / Password');}
+}
+function adminLogout(){sessionStorage.removeItem('admin_auth');location.reload();}
+function checkAuth(){if(sessionStorage.getItem('admin_auth')==='true'){document.getElementById('loginScreen').style.display='none';document.getElementById('adminPanel').style.display='block';loadAll();}}
+function switchAdminTab(t){document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.section').forEach(e=>e.classList.remove('active'));document.querySelector(`[onclick="switchAdminTab('${t}')"]`).classList.add('active');document.getElementById('sec-'+t).classList.add('active');}
+async function loadAll(){
+  try{
+    let {data:users} = await supabaseClient.from('users').select('*').order('created_at',{ascending:false}).limit(200);
+    let {data:deps} = await supabaseClient.from('deposits').select('*').order('created_at',{ascending:false}).limit(200);
+    let {data:withs} = await supabaseClient.from('withdrawals').select('*').order('created_at',{ascending:false}).limit(200);
+    let {data:trans} = await supabaseClient.from('transactions').select('*').order('created_at',{ascending:false}).limit(200);
+    let today=new Date().toISOString().slice(0,10);
+    let usersToday=users?users.filter(u=>u.created_at&&u.created_at.slice(0,10)===today).length:0;
+    document.getElementById('statUsers').innerText=`${usersToday} / ${users?users.length:0}`;
+    let totalIn=deps?deps.filter(d=>d.status==='approved').reduce((a,b)=>a+(b.amount||0),0):0;
+    let totalOut=withs?withs.filter(w=>w.status==='approved').reduce((a,b)=>a+(b.amount||0),0):0;
+    let dailyToday=trans?trans.filter(t=>t.type&&t.type.includes('Claim')&&t.created_at&&t.created_at.slice(0,10)===today).reduce((a,b)=>a+(b.amount||0),0):0;
+    document.getElementById('statIn').innerText=totalIn.toLocaleString()+' RWF';
+    document.getElementById('statOut').innerText=totalOut.toLocaleString()+' RWF';
+    document.getElementById('statDaily').innerText=dailyToday.toLocaleString()+' RWF';
+    document.getElementById('statDepPend').innerText=deps?deps.filter(d=>d.status==='pending').length:0;
+    document.getElementById('statWithPend').innerText=withs?withs.filter(w=>w.status==='pending').length:0;
+    document.getElementById('usersList').innerHTML=(users||[]).map(u=>`<div class="row"><span>👤 ${u.phone||u.id.slice(0,10)}<br><small>Real:${(u.real_balance||0)} | Wel:${(u.welcome_bonus||0)} ${u.welcome_locked?'🔒':'✅'} | Daily:${u.daily_income||0}</small></span><div class="actions"><button class="small-btn" style="background:#00f7ff;color:black" onclick="editUser('${u.id}')">Edit</button><button class="small-btn" style="background:#ffaa00;color:black" onclick="unlockWelcome('${u.id}')">Unlock</button><button class="small-btn" style="background:#ff3b3b;color:white" onclick="deleteUser('${u.id}')">Delete</button></div></div>`).join('')||'<div style="color:#888">No users yet</div>';
+    document.getElementById('depositsList').innerHTML=(deps||[]).map(d=>`<div class="row"><span>💰 ${d.amount} TID:${d.trans_id}<br><small>${d.user_id.slice(0,8)} ${new Date(d.created_at).toLocaleString()}</small> <span class="badge badge-${d.status}">${d.status}</span></span><div class="actions">${d.status==='pending'?`<button class="small-btn" style="background:#00ff88;color:black" onclick="approveDeposit(${d.id},'${d.user_id}',${d.amount})">Approve</button><button class="small-btn" style="background:#ff3b3b;color:white" onclick="rejectItem('deposits',${d.id})">Reject</button>`:''}<button class="small-btn" style="background:#222;color:white" onclick="deleteRow('deposits',${d.id})">Delete</button></div></div>`).join('')||'<div style="color:#888">No deposits</div>';
+    document.getElementById('withdrawalsList').innerHTML=(withs||[]).map(w=>`<div class="row"><span>💸 ${w.amount} Fee:${w.fee} Net:${w.net} To:${w.phone}<br><small>${w.user_id.slice(0,8)}</small> <span class="badge badge-${w.status}">${w.status}</span></span><div class="actions">${w.status==='pending'?`<button class="small-btn" style="background:#00ff88;color:black" onclick="approveWithdraw(${w.id})">Approve</button><button class="small-btn" style="background:#ff3b3b;color:white" onclick="rejectItem('withdrawals',${w.id})">Reject</button>`:''}<button class="small-btn" style="background:#222;color:white" onclick="deleteRow('withdrawals',${w.id})">Delete</button></div></div>`).join('')||'<div style="color:#888">No withdrawals</div>';
+    document.getElementById('referralsList').innerHTML=(trans||[]).filter(t=>t.type&&t.type.toLowerCase().includes('referral')).map(t=>`<div class="row"><span>${t.type} ${t.amount}</span></div>`).join('')||'<div style="color:#888">No referrals</div>';
+  }catch(e){alert(e.message)}
+}
+async function approveDeposit(id,userId,amount){if(!confirm(`Approve ${amount}?`))return;await supabaseClient.from('deposits').update({status:'approved'}).eq('id',id);let {data:user}=await supabaseClient.from('users').select('*').eq('id',userId).single();if(user){await supabaseClient.from('users').update({welcome_locked:false,real_balance:(user.real_balance||0)+amount}).eq('id',userId);}loadAll();}
+async function rejectItem(table,id){if(!confirm('Reject?'))return;await supabaseClient.from(table).update({status:'rejected'}).eq('id',id);loadAll();}
+async function deleteRow(table,id){if(!confirm('Delete history?'))return;await supabaseClient.from(table).delete().eq('id',id);loadAll();}
+async function approveWithdraw(id){await supabaseClient.from('withdrawals').update({status:'approved'}).eq('id',id);loadAll();}
+async function deleteUser(id){if(!confirm('DELETE USER?'))return;await supabaseClient.from('users').delete().eq('id',id);loadAll();}
+async function editUser(id){let {data:user}=await supabaseClient.from('users').select('*').eq('id',id).single();let real=prompt(`Real Balance current ${user.real_balance}`,user.real_balance);if(real===null)return;await supabaseClient.from('users').update({real_balance:parseInt(real)||0}).eq('id',id);loadAll();}
+async function unlockWelcome(id){await supabaseClient.from('users').update({welcome_locked:false}).eq('id',id);loadAll();}
+function changeAdminPass(){let np=document.getElementById('newAdminPass').value;if(!np||np.length<3){alert('Min 3');return;}localStorage.setItem('admin_pass',np);alert('✅ New password saved - hidden!');}
+checkAuth();
+</script>
+</body>
+  </html>
