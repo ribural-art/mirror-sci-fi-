@@ -53,9 +53,7 @@ if(refFromUrl){
   document.getElementById('refBy').innerText=refFromUrl;
   localStorage.setItem('mirror_referred_by_code', refFromUrl);
 }
-
 function generateRefCode(){return 'MIRROR-'+Math.random().toString(36).substring(2,7).toUpperCase()+Date.now().toString().slice(-3);}
-
 async function doRegister(){
   let phone=document.getElementById('phone').value.trim();
   let pass=document.getElementById('pass').value.trim();
@@ -69,18 +67,14 @@ async function doRegister(){
   try{
     let {data:exists}=await supabaseClient.from('users').select('phone').eq('phone',phone).maybeSingle();
     if(exists){alert('Phone isanzwe ibaho - Jya kuri login');location.href='login.html';return;}
-    
-    // ✅ FIX: Bika ref_code si id
     let referredByCode = null;
     if(refInput){
       let {data:refUser}=await supabaseClient.from('users').select('ref_code').eq('ref_code',refInput).maybeSingle();
       if(!refUser){
-        alert('❌ Referral code siyo: '+refInput+'\n\nAndika neza cyangwa usige ubusa.');
-        btn.innerText='REGISTER & CLAIM 2000 RWF';btn.disabled=false;return;
+        alert('❌ Referral code siyo: '+refInput);btn.innerText='REGISTER & CLAIM 2000 RWF';btn.disabled=false;return;
       }
-      referredByCode = refUser.ref_code; // ✅ BIKA CODE, SI ID
+      referredByCode = refUser.ref_code;
     }
-    
     let userId='user_'+Date.now()+'_'+Math.random().toString(36).substring(2,6);
     let myRefCode=generateRefCode();
     let newUser={
@@ -94,27 +88,20 @@ async function doRegister(){
       total_earnings:0,
       has_deposited:false,
       ref_code:myRefCode,
-      referred_by: referredByCode // ✅ MIRROR-XXXX
+      referred_by: referredByCode
     };
     let {error}=await supabaseClient.from('users').insert(newUser);
     if(error){alert('Error: '+error.message);btn.innerText='REGISTER & CLAIM 2000 RWF';btn.disabled=false;return;}
-    
     localStorage.setItem('mirror_user_id',userId);
     localStorage.setItem('mirror_phone',phone);
     localStorage.setItem('mirror_ref_code',myRefCode);
     localStorage.setItem('mirror_user', JSON.stringify(newUser));
-    localStorage.setItem('mirror_state', JSON.stringify({
-      real:0, welcome:2000, welcomeLocked:true, daily:0, total:0, lastClaim:0, hasDeposited:false, history:[], refCode:myRefCode, team:[]
-    }));
+    localStorage.setItem('mirror_state', JSON.stringify({real:0, welcome:2000, welcomeLocked:true, daily:0, total:0, lastClaim:0, hasDeposited:false, history:[], refCode:myRefCode, team:[]}));
     localStorage.removeItem('mirror_referred_by_code');
-    
-    if(referredByCode){
-      await supabaseClient.from('transactions').insert({user_id: (await supabaseClient.from('users').select('id').eq('ref_code',referredByCode).single()).data.id, type:'Referral Invite Pending - '+phone+' - Waiting Deposit', amount:0, status:'pending'});
-    }
-    
-    alert('✅ Registered! Welcome 2000 RWF locked - Kora deposit ya mbere kuri Code 2181876 Sifa!');location.href='dashboard.html';
-  }catch(e){alert('Error: '+e.message);console.log(e);btn.innerText='REGISTER & CLAIM 2000 RWF';btn.disabled=false;}
+    // ✅ FIXED: NTA TRANSACTION YA 0 RWF - Team izaboneka muri users.referred_by gusa!
+    alert('✅ Registered! Welcome 2000 RWF locked - Kora deposit ya mbere!');location.href='dashboard.html';
+  }catch(e){alert('Error: '+e.message);btn.innerText='REGISTER & CLAIM 2000 RWF';btn.disabled=false;}
 }
 </script>
 </body>
-</html>
+  </html>
