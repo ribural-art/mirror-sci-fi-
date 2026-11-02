@@ -24,7 +24,7 @@ body{min-height:100vh;background:#050a1e url('mirror-log-bg.png') no-repeat cent
 .btn{width:100%;padding:13px;border-radius:12px;border:none;font-weight:900;cursor:pointer;margin-top:8px;font-size:13px}
 .btn-reg{background:#00f7ff;color:black;box-shadow:0 0 20px #00f7ff}
 .btn-login{background:transparent;color:#00f7ff;border:1px solid #00f7ff}
-.ref-info{background:rgba(255,59,59,0.1);border:1px solid rgba(255,59,59,0.3);border-radius:8px;padding:8px;margin:8px 0;font-size:10px;color:#ffaa88}
+.ref-info{background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);border-radius:8px;padding:8px;margin:8px 0;font-size:10px;color:#00ff88}
 </style>
 </head>
 <body>
@@ -36,19 +36,26 @@ body{min-height:100vh;background:#050a1e url('mirror-log-bg.png') no-repeat cent
     <div class="subtitle">TECH INVESTMENT</div>
   </div>
   <div class="welcome-badge">🎁 WELCOME BONUS 2000 RWF - LOCKED UNTIL FIRST DEPOSIT</div>
-  <div id="refNotice" class="ref-info" style="display:none">🎁 Invited by: <span id="refBy"></span> - Lev1 20% bonus after your deposit</div>
+  <div id="refNotice" class="ref-info" style="display:none">🎁 Invited by: <b><span id="refBy"></span></b> - Uzahabwa bonus, uwagutumiye abona 20%</div>
   <input class="input" id="phone" placeholder="Phone: 07... (MTN)">
   <input class="input" id="pass" type="password" placeholder="Password (min 6)">
   <input class="input" id="confirmPass" type="password" placeholder="Confirm Password">
-  <input class="input" id="refCode" placeholder="Referral Code (optional)">
+  <input class="input" id="refCode" placeholder="Referral Code (optional) - MIRROR-XXXX">
   <button class="btn btn-reg" onclick="doRegister()">REGISTER & CLAIM 2000 RWF</button>
   <button class="btn btn-login" onclick="location.href='login.html'">Already have account? LOGIN</button>
 </div>
 <script>
 const urlParams = new URLSearchParams(window.location.search);
 const refFromUrl = urlParams.get('ref') || urlParams.get('code') || urlParams.get('r');
-if(refFromUrl){document.getElementById('refCode').value=refFromUrl;document.getElementById('refNotice').style.display='block';document.getElementById('refBy').innerText=refFromUrl;}
+if(refFromUrl){
+  document.getElementById('refCode').value=refFromUrl;
+  document.getElementById('refNotice').style.display='block';
+  document.getElementById('refBy').innerText=refFromUrl;
+  localStorage.setItem('mirror_referred_by_code', refFromUrl);
+}
+
 function generateRefCode(){return 'MIRROR-'+Math.random().toString(36).substring(2,7).toUpperCase()+Date.now().toString().slice(-3);}
+
 async function doRegister(){
   let phone=document.getElementById('phone').value.trim();
   let pass=document.getElementById('pass').value.trim();
@@ -62,18 +69,52 @@ async function doRegister(){
   try{
     let {data:exists}=await supabaseClient.from('users').select('phone').eq('phone',phone).maybeSingle();
     if(exists){alert('Phone isanzwe ibaho - Jya kuri login');location.href='login.html';return;}
-    let referredBy=null;
-    if(refInput){let {data:refUser}=await supabaseClient.from('users').select('id,ref_code').eq('ref_code',refInput).maybeSingle();if(!refUser){alert('Referral code siyo');btn.innerText='REGISTER & CLAIM 2000 RWF';btn.disabled=false;return;}referredBy=refUser.id;}
+    
+    // ✅ FIX: Bika ref_code si id
+    let referredByCode = null;
+    if(refInput){
+      let {data:refUser}=await supabaseClient.from('users').select('ref_code').eq('ref_code',refInput).maybeSingle();
+      if(!refUser){
+        alert('❌ Referral code siyo: '+refInput+'\n\nAndika neza cyangwa usige ubusa.');
+        btn.innerText='REGISTER & CLAIM 2000 RWF';btn.disabled=false;return;
+      }
+      referredByCode = refUser.ref_code; // ✅ BIKA CODE, SI ID
+    }
+    
     let userId='user_'+Date.now()+'_'+Math.random().toString(36).substring(2,6);
     let myRefCode=generateRefCode();
-    let newUser={id:userId,phone:phone,password:pass,real_balance:0,welcome_bonus:2000,welcome_locked:true,daily_income:0,total_earnings:0,has_deposited:false,ref_code:myRefCode,referred_by:referredBy};
+    let newUser={
+      id:userId,
+      phone:phone,
+      password:pass,
+      real_balance:0,
+      welcome_bonus:2000,
+      welcome_locked:true,
+      daily_income:0,
+      total_earnings:0,
+      has_deposited:false,
+      ref_code:myRefCode,
+      referred_by: referredByCode // ✅ MIRROR-XXXX
+    };
     let {error}=await supabaseClient.from('users').insert(newUser);
     if(error){alert('Error: '+error.message);btn.innerText='REGISTER & CLAIM 2000 RWF';btn.disabled=false;return;}
-    localStorage.setItem('mirror_user_id',userId);localStorage.setItem('mirror_phone',phone);localStorage.setItem('mirror_ref_code',myRefCode);
-    if(referredBy){await supabaseClient.from('transactions').insert({user_id:referredBy,type:'Referral Invite Pending - '+phone,amount:0,status:'pending'});}
-    alert('✅ Registered! Welcome 2000 RWF locked - Kora deposit ya mbere kuri Code 2181876 Sifa kugirango u-unlock!');location.href='dashboard.html';
-  }catch(e){alert('Error: '+e.message);btn.innerText='REGISTER & CLAIM 2000 RWF';btn.disabled=false;}
+    
+    localStorage.setItem('mirror_user_id',userId);
+    localStorage.setItem('mirror_phone',phone);
+    localStorage.setItem('mirror_ref_code',myRefCode);
+    localStorage.setItem('mirror_user', JSON.stringify(newUser));
+    localStorage.setItem('mirror_state', JSON.stringify({
+      real:0, welcome:2000, welcomeLocked:true, daily:0, total:0, lastClaim:0, hasDeposited:false, history:[], refCode:myRefCode, team:[]
+    }));
+    localStorage.removeItem('mirror_referred_by_code');
+    
+    if(referredByCode){
+      await supabaseClient.from('transactions').insert({user_id: (await supabaseClient.from('users').select('id').eq('ref_code',referredByCode).single()).data.id, type:'Referral Invite Pending - '+phone+' - Waiting Deposit', amount:0, status:'pending'});
+    }
+    
+    alert('✅ Registered! Welcome 2000 RWF locked - Kora deposit ya mbere kuri Code 2181876 Sifa!');location.href='dashboard.html';
+  }catch(e){alert('Error: '+e.message);console.log(e);btn.innerText='REGISTER & CLAIM 2000 RWF';btn.disabled=false;}
 }
 </script>
 </body>
-  </html>
+</html>
