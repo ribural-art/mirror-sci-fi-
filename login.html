@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="rw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mirror Sci-Fi - Login</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://evkzhpiuxkaejegswlam.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2a3pocGl1eGthZWplZ3N3bGFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDg5MzQsImV4cCI6MjEwODA4NDkzNH0.Yu-2Djq7sWY1bjHY-GnpVLpWr70nls7bDF0Bd_FLcSA";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{min-height:100vh;background:#050a1e url('mirror-log-bg.png') no-repeat center center fixed;background-size:cover;display:flex;align-items:center;justify-content:center;padding:15px}
+.overlay{position:fixed;inset:0;background:rgba(5,10,30,0.85);backdrop-filter:blur(3px)}
+.card{position:relative;z-index:2;width:100%;max-width:380px;background:rgba(15,20,41,0.95);border:1px solid #00f7ff;border-radius:20px;padding:20px;box-shadow:0 0 40px rgba(0,247,255,0.25)}
+.logo-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:12px}
+.logo-img{width:90px;height:90px;object-fit:contain;border-radius:50%;background:#000;border:2px solid #00f7ff;box-shadow:0 0 20px #00f7ff;padding:6px}
+.title{font-size:22px;font-weight:900;color:#00f7ff;letter-spacing:2px;text-shadow:0 0 10px #00f7ff;margin-top:8px}
+.subtitle{font-size:11px;color:#ff3b3b;letter-spacing:3px;margin-top:2px;font-weight:700}
+.input{width:100%;padding:12px;border-radius:10px;border:1px solid #333;background:#000;color:white;margin:6px 0;font-size:13px}
+.btn{width:100%;padding:13px;border-radius:12px;border:none;font-weight:900;cursor:pointer;margin-top:8px;font-size:13px}
+.btn-login{background:#00f7ff;color:black;box-shadow:0 0 20px #00f7ff}
+.btn-reg{background:transparent;color:#00f7ff;border:1px solid #00f7ff}
+</style>
+</head>
+<body>
+<div class="overlay"></div>
+<div class="card">
+  <div class="logo-wrap">
+    <img src="mirror-log.png" alt="Mirror" class="logo-img" onerror="this.src='https://via.placeholder.com/90/000/00f7ff?text=MIRROR'">
+    <div class="title">MIRROR SCI-FI</div>
+    <div class="subtitle">TECH INVESTMENT</div>
+  </div>
+  <input class="input" id="phone" placeholder="Phone: 07...">
+  <input class="input" id="pass" type="password" placeholder="Password">
+  <button class="btn btn-login" onclick="doLogin()">LOGIN</button>
+  <button class="btn btn-reg" onclick="location.href='index.html'">No account? REGISTER</button>
+</div>
+<script>
+async function doLogin(){
+  let phone=document.getElementById('phone').value.trim();
+  let pass=document.getElementById('pass').value.trim();
+  if(!phone||!pass){alert('Uzuza phone na password');return;}
+  let btn=document.querySelector('.btn-login');btn.innerText='Checking...';btn.disabled=true;
+  try{
+    let {data,error}=await supabaseClient.from('users').select('*').eq('phone',phone).eq('password',pass).maybeSingle();
+    if(error||!data){alert('Phone cyangwa Password siyo');btn.innerText='LOGIN';btn.disabled=false;return;}
+    localStorage.setItem('mirror_user_id',data.id);
+    localStorage.setItem('mirror_phone',data.phone);
+    localStorage.setItem('mirror_ref_code',data.ref_code);
+    localStorage.setItem('mirror_user',JSON.stringify(data));
+    // sync state
+    let state={real:data.real_balance||0,welcome:data.welcome_bonus||2000,welcomeLocked:data.welcome_locked!==false,daily:data.daily_income||0,total:data.total_earnings||0,lastClaim:data.last_claim?new Date(data.last_claim).getTime():0,hasDeposited:data.has_deposited||false,history:[],refCode:data.ref_code,team:[]};
+    localStorage.setItem('mirror_state',JSON.stringify(state));
+    alert('✅ Welcome '+phone);
+    location.href='dashboard.html';
+  }catch(e){alert('Error: '+e.message);btn.innerText='LOGIN';btn.disabled=false;}
+}
+</script>
+</body>
+  </html>
