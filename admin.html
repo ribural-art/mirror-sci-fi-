@@ -102,7 +102,6 @@ async function loadAll(){
     let {data:users} = await supabaseClient.from('users').select('*').order('created_at',{ascending:false}).limit(200);
     let {data:trans} = await supabaseClient.from('transactions').select('*').order('created_at',{ascending:false}).limit(300);
     
-    // Deposits & Withdrawals ziva muri transactions niba deposits table nta data
     let deposits = trans ? trans.filter(t=>t.type&&t.type.toLowerCase().includes('deposit')) : [];
     let withdrawals = trans ? trans.filter(t=>t.type&&t.type.toLowerCase().includes('withdraw')) : [];
     
@@ -131,7 +130,6 @@ async function loadAll(){
         </div>
       </div>`).join('')||'<div style="color:#888">No users yet</div>';
 
-    // Sort pending first
     deposits.sort((a,b)=> (a.status==='pending'?-1:1) );
     document.getElementById('depositsList').innerHTML=deposits.map(d=>`
       <div class="row">
@@ -142,7 +140,7 @@ async function loadAll(){
         <div class="actions">
           ${d.status==='pending'?`<button class="small-btn" style="background:#00ff88;color:black" onclick="approveDepositTrans('${d.id}','${d.user_id}',${d.amount})">✅ APPROVE - Give Welcome+Deposit</button><button class="small-btn" style="background:#ff3b3b;color:white" onclick="rejectTrans('${d.id}')">Reject</button>`:''}
         </div>
-      </div>`).join('')||'<div style="color:#888">No deposits - zizagaragara hano user niyohereza</div>';
+      </div>`).join('')||'<div style="color:#888">No deposits</div>';
 
     withdrawals.sort((a,b)=> (a.status==='pending'?-1:1) );
     document.getElementById('withdrawalsList').innerHTML=withdrawals.map(w=>`
@@ -161,9 +159,8 @@ async function loadAll(){
   }catch(e){alert(e.message); console.log(e)}
 }
 
-// ✅ FINAL APPROVE LOGIC - Chairman yemeye deposit
 async function approveDepositTrans(transId,userId,amount){
-  if(!confirm(`✅ APPROVE ${amount.toLocaleString()} RWF?\\n\\nUser azahabwa:\\n- Deposit ${amount} muri Real\\n- Welcome 2000 UNLOCKED\\n- Daily 0 (agomba kugura plan)`)) return;
+  if(!confirm(`✅ APPROVE ${amount.toLocaleString()} RWF?\\n\\nUser azahabwa:\\n- Deposit ${amount} muri Real\\n- Welcome 2000 UNLOCKED`)) return;
   try{
     await supabaseClient.from('transactions').update({status:'approved'}).eq('id',transId);
     let {data:user} = await supabaseClient.from('users').select('*').eq('id',userId).single();
@@ -192,7 +189,27 @@ async function rejectTrans(id){
   await supabaseClient.from('transactions').update({status:'rejected'}).eq('id',id);
   loadAll();
 }
-async function deleteUser(id){if(!confirm('DELETE USER?'))return;await supabaseClient.from('users').delete().eq('id',id);loadAll();}
+
+// ✅ FINAL DELETE - ISIBA USER + BALANCE IN + HISTORY ZOSE
+async function deleteUser(id){
+  if(!confirm('❌ DELETE USER BURUNDU?\\n\\nIbi bizasiba:\\n- User ubwe\\n- Balance ye yinjiye (IN) izavaho muri Stats\\n- Withdrawals ze\\n- History zose za approve (transactions)\\n- Deposits ze\\n\\nStats IN/OUT zizavugurura automatic.\\n\\nUremeza?')) return;
+  try{
+    // 1. Siba transactions zose ze - nizo zituma IN/OUT iguma muri stats
+    await supabaseClient.from('transactions').delete().eq('user_id',id);
+    // 2. Siba muri tables zindi niba zihari
+    try{ await supabaseClient.from('deposits').delete().eq('user_id',id); }catch(e){}
+    try{ await supabaseClient.from('withdrawals').delete().eq('user_id',id); }catch(e){}
+    // 3. Hanyuma siba user ubwe
+    await supabaseClient.from('users').delete().eq('id',id);
+    
+    alert('✅ User + Balance IN + History byose bisibwe!\\n\\nStats zivuguruwe - Balance IN ntiharimo ayo user.');
+    loadAll();
+  }catch(e){
+    alert('Error: '+e.message);
+    console.log(e);
+  }
+}
+
 async function editUser(id){let {data:user}=await supabaseClient.from('users').select('*').eq('id',id).single();let real=prompt(`Real Balance current ${user.real_balance}`,user.real_balance);if(real===null)return;await supabaseClient.from('users').update({real_balance:parseInt(real)||0}).eq('id',id);loadAll();}
 async function unlockWelcome(id){if(!confirm('Unlock Welcome 2000?'))return;await supabaseClient.from('users').update({welcome_locked:false, welcome_bonus:2000}).eq('id',id);loadAll();}
 
