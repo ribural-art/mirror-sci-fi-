@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mirror Sci-Fi - Dashboard FINAL</title>
+<title>Mirror Sci-Fi - Dashboard FINAL PRO</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL="https://evkzhpiuxkaejegswlam.supabase.co";
@@ -38,7 +38,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:
 .plan-income{color:#00ff88;font-weight:700;font-size:13px}
 .buy-btn{background:#8a2be2;color:white;padding:8px 14px;border-radius:8px;border:none;font-weight:700;cursor:pointer}
 .history{margin:15px;background:rgba(0,0,0,0.45);border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,0.08)}
-.hist-item{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:11px}
+.hist-item{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:11px;gap:8px}
 .modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.88);z-index:99;align-items:flex-start;justify-content:center;padding:15px;overflow-y:auto}
 .modal.active{display:flex}
 .modal-box{background:#0f1429;border:1px solid #00f7ff;border-radius:16px;padding:18px;width:100%;max-width:440px;box-shadow:0 0 30px #00f7ff;margin-top:15px}
@@ -76,7 +76,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:
  <div class="plan-card"><img src="spaceship.png"><div class="plan-info"><div class="plan-name">Spaceship</div><div class="plan-price">Price: 50,000 RWF | 30 Days</div><div class="plan-income">Daily: 5,000 RWF | Total 150,000 RWF</div></div><button class="buy-btn" onclick="buyPlan('Spaceship',50000,5000)">BUY</button></div>
 </div>
 
-<div class="history"><h4 style="color:#00f7ff;margin-bottom:8px">📜 History</h4><div id="historyList"></div></div>
+<div class="history"><h4 style="color:#00f7ff;margin-bottom:8px">📜 History - Supabase Live <button onclick="loadHistoryList()" style="float:right;background:#00f7ff;border:none;padding:3px 8px;border-radius:4px;font-size:10px">Refresh</button></h4><div id="historyList">Loading...</div></div>
 <div style="height:90px"></div>
 
 <div class="bottom-nav">
@@ -116,7 +116,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:
    <div class="team-level"><span>Lev2</span><b style="color:#00f7ff">1.5%</b></div>
    <div class="team-level"><span>Lev3</span><b style="color:#ffaa00">1%</b></div>
   </div>
-  <h4 style="color:#00ff88;margin:10px 0 5px">🏠 Abamwinjiriyeho</h4>
+  <h4 style="color:#00ff88;margin:10px 0 5px">🏠 Abamwinjiriyeho - Live from Supabase</h4>
   <div id="teamMembers" style="background:#000;padding:10px;border-radius:8px;max-height:220px;overflow-y:auto;font-size:11px">Loading...</div>
   <div style="margin-top:10px;background:rgba(0,255,136,0.1);padding:10px;border-radius:8px;font-size:12px;display:flex;justify-content:space-between"><span>Commission: <b id="teamComm">0 RWF</b></span><span>Members: <b id="teamCount">0</b></span></div>
   <button class="btn" style="width:100%;margin-top:10px;background:#222;color:white" onclick="closeModal('teamModal')">CLOSE</button>
@@ -130,10 +130,32 @@ try{if(localStorage.getItem('mirror_phone')){currentUser.phone=localStorage.getI
 document.getElementById('userPhone').innerText='User: '+(currentUser.phone||currentUser.id.slice(0,8));
 
 function getProductionDomain(){let o=window.location.origin;if(o.includes('localhost')||o.startsWith('file://')||o.includes('127.0.0.1')||o.includes('storage/emulated')) return 'https://mirror-sci-fi.vercel.app'; return o;}
-async function syncFromSupabase(){try{let {data:user}=await supabaseClient.from('users').select('*').eq('id',currentUser.id).maybeSingle();if(user){state.real=user.real_balance||state.real;state.welcome=user.welcome_bonus!==null?user.welcome_bonus:state.welcome;state.welcomeLocked=user.welcome_locked!==null?user.welcome_locked:state.welcomeLocked;state.daily=user.daily_income||state.daily;state.total=user.total_earnings||state.total;if(user.last_claim) state.lastClaim=new Date(user.last_claim).getTime();state.hasDeposited=user.has_deposited||state.hasDeposited;localStorage.setItem('mirror_state',JSON.stringify(state));render();}}catch(e){}}
+
+async function syncFromSupabase(){
+  try{
+    let {data:user}=await supabaseClient.from('users').select('*').eq('id',currentUser.id).maybeSingle();
+    if(user){
+      state.real=user.real_balance||0;
+      state.welcome=user.welcome_bonus!==null?user.welcome_bonus:state.welcome;
+      state.welcomeLocked=user.welcome_locked!==null?user.welcome_locked:state.welcomeLocked;
+      state.daily=user.daily_income||0;
+      state.total=user.total_earnings||0;
+      if(user.last_claim) state.lastClaim=new Date(user.last_claim).getTime();
+      state.hasDeposited=user.has_deposited||false;
+      // ✅ FIX 1: refCode nyayo iva muri Supabase, si random
+      if(user.ref_code){
+        state.refCode=user.ref_code;
+        localStorage.setItem('mirror_ref_code', user.ref_code);
+      }
+      localStorage.setItem('mirror_state',JSON.stringify(state));
+      render();
+      loadHistoryList();
+    }
+  }catch(e){console.log('sync error',e)}
+}
+
 function save(){localStorage.setItem('mirror_state',JSON.stringify(state));render();try{supabaseClient.from('users').upsert({id:currentUser.id,phone:currentUser.phone,real_balance:state.real,welcome_bonus:state.welcome,welcome_locked:state.welcomeLocked,daily_income:state.daily,total_earnings:state.total,last_claim:state.lastClaim?new Date(state.lastClaim).toISOString():null,ref_code:state.refCode,has_deposited:state.hasDeposited}).then(()=>{});}catch(e){}}
 
-// ✅ FINAL RENDER - MESSAGE IVAHO BURUNDU
 function render(){
  document.getElementById('realBal').innerText=state.real.toLocaleString()+' RWF';
  let wEl=document.getElementById('welcomeBal');
@@ -144,14 +166,13 @@ function render(){
  let msg=document.getElementById('welcomeMsg');let claimBtn=document.getElementById('claimBtn');let cdBox=document.getElementById('countdownBox');
 
  if(state.welcomeLocked){
-   msg.innerHTML=state.hasDeposited ? '⏳ Deposit PENDING - Tegereza Admin ayemeze.' : '🔒 Welcome 2,000 RWF LOCKED - Kora Deposit 7000!';
+   msg.innerHTML=state.hasDeposited ? '⏳ Deposit PENDING - Tegereza Admin ayemeze. History izahita ihinduka approved.' : '🔒 Welcome 2,000 RWF LOCKED - Kora Deposit 7000!';
    claimBtn.style.display='none';cdBox.style.display='none';
    if(state.lastClaim) checkTimer();
  } else if(state.welcome>0){
    msg.innerHTML='✅ Admin yemeye deposit! Welcome <b>'+state.welcome.toLocaleString()+' RWF</b> ready!';
    claimBtn.style.display='block';claimBtn.innerText='CLAIM '+state.welcome.toLocaleString()+' RWF TO REAL';cdBox.style.display='none';
  } else {
-   // ✅ Welcome =0 - MESSAGE YA KERA NTIGARAGARA NA MBA
    if(state.daily>0){
      msg.innerHTML='✅ Active - Daily: <b>'+state.daily.toLocaleString()+' RWF</b> | Total: '+(state.daily*30).toLocaleString()+' RWF';
      checkTimer();
@@ -160,12 +181,34 @@ function render(){
      claimBtn.style.display='none';cdBox.style.display='none';
    }
  }
- let hList=document.getElementById('historyList');
- if(state.history.length===0) hList.innerHTML='<div style="font-size:12px;color:#888">No transactions yet</div>';
- else hList.innerHTML=state.history.map(h=>`<div class="hist-item"><span>${h.type} - ${h.amount} RWF</span><span style="color:${h.status==='approved'?'#00ff88':'#ffaa00'}">${h.status}</span></div>`).join('');
  let domain=getProductionDomain();
  document.getElementById('refCode').innerText=state.refCode;
  document.getElementById('refLink').value=domain+'/index.html?ref='+state.refCode;
+}
+
+// ✅ FIX 2: History iva muri Supabase - approved/pending nyayo
+async function loadHistoryList(){
+  let container=document.getElementById('historyList');
+  if(!container) return;
+  container.innerHTML='<div style="color:#aaa;padding:10px">⏳ Loading from Supabase...</div>';
+  try{
+    let {data:trans, error}=await supabaseClient.from('transactions').select('*').eq('user_id', currentUser.id).order('created_at',{ascending:false}).limit(100);
+    if(error) throw error;
+    if(!trans || trans.length===0){
+      container.innerHTML='<div style="font-size:12px;color:#888">No transactions yet - History izava muri Supabase</div>';
+      return;
+    }
+    container.innerHTML=trans.map(t=>{
+      let color = t.status==='approved' ? '#00ff88' : t.status==='pending' ? '#ffaa00' : '#ff3b3b';
+      return `<div class="hist-item"><span style="flex:1">${t.type}<br><small style="color:#888">${new Date(t.created_at).toLocaleString()} - ${t.amount.toLocaleString()} RWF</small></span><span style="color:${color};font-weight:700">${t.status.toUpperCase()}</span></div>`;
+    }).join('');
+  }catch(e){
+    console.log(e);
+    // Fallback to local if error
+    let hList=document.getElementById('historyList');
+    if(state.history.length===0) hList.innerHTML='<div style="font-size:12px;color:#888">No transactions yet</div>';
+    else hList.innerHTML=state.history.map(h=>`<div class="hist-item"><span>${h.type} - ${h.amount} RWF</span><span style="color:${h.status==='approved'?'#00ff88':'#ffaa00'}">${h.status}</span></div>`).join('');
+  }
 }
 
 function switchTab(t){document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));if(t==='dash'){document.getElementById('navDash').classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}if(t==='art'){document.getElementById('navArt').classList.add('active');document.getElementById('artSection').scrollIntoView({behavior:'smooth'});}}
@@ -173,32 +216,39 @@ function openDeposit(){document.getElementById('depModal').classList.add('active
 function openWithdraw(){let h=new Date().getHours();if(h<8||h>=23){alert('❌ Withdrawal ifunze! 8AM-11PM only. Ubu ni '+h+'h');return;}document.getElementById('withModal').classList.add('active')}
 function closeModal(id){document.getElementById(id).classList.remove('active');document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));document.getElementById('navDash').classList.add('active');}
 
-// ✅ TEAM YAKOSOWE - IGARAGARA NEZA
+// ✅ FIX 3: TEAM - ibaza CODE nyayo iva muri Supabase
 async function openTeam(){
  document.getElementById('teamModal').classList.add('active');
  let domain=getProductionDomain();
+ // Sync code first
+ await syncFromSupabase();
  document.getElementById('refCode').innerText=state.refCode;
  document.getElementById('refLink').value=domain+'/index.html?ref='+state.refCode;
- document.getElementById('teamMembers').innerHTML='<div style="color:#aaa;text-align:center;padding:10px">⏳ Loading team...</div>';
+ document.getElementById('teamMembers').innerHTML='<div style="color:#aaa;text-align:center;padding:10px">⏳ Loading team from Supabase - Code: '+state.refCode+'...</div>';
  try{
-   let {data:teamUsers}=await supabaseClient.from('users').select('phone,real_balance,daily_income').eq('referred_by',state.refCode).limit(100);
-   let all=teamUsers&&teamUsers.length>0?teamUsers.map(u=>({phone:u.phone,commission:Math.floor((u.real_balance||0)*0.2),plan:u.daily_income?'Active '+u.daily_income+' RWF':'No plan'})): (state.team||[]);
-   if(all.length===0){
-     document.getElementById('teamMembers').innerHTML='<div style="color:#888;padding:20px;text-align:center">👋 Nta muntu uramwinjiraho.<br><br>Sangiza link yawe!<br>Code: <b>'+state.refCode+'</b></div>';
+   // ✅ Baza Supabase abo watumiye - referred_by = CODE yawe
+   let {data:teamUsers, error}=await supabaseClient.from('users').select('phone,real_balance,has_deposited,created_at').eq('referred_by', state.refCode).order('created_at',{ascending:false}).limit(100);
+   if(error) throw error;
+   if(!teamUsers || teamUsers.length===0){
+     document.getElementById('teamMembers').innerHTML='<div style="color:#888;padding:20px;text-align:center">👋 Nta muntu uramwinjiraho.<br><br>Sangiza link:<br><b style="color:#00f7ff">'+domain+'/index.html?ref='+state.refCode+'</b><br><br>Code: <b>'+state.refCode+'</b></div>';
+     document.getElementById('teamCount').innerText='0';
+     document.getElementById('teamComm').innerText='0 RWF';
    } else {
-     document.getElementById('teamMembers').innerHTML=all.map(m=>`<div style="padding:7px 0;border-bottom:1px solid #222;display:flex;justify-content:space-between"><span>👤 ${m.phone}<br><small style="color:#aaa">${m.plan}</small></span><span style="color:#00ff88;font-weight:700">${m.commission||0} RWF</span></div>`).join('');
+     // Commission from transactions
+     let {data:commTrans}=await supabaseClient.from('transactions').select('amount').eq('user_id', currentUser.id).ilike('type','%Commission%');
+     let totalComm=commTrans?commTrans.reduce((a,b)=>a+(b.amount||0),0):0;
+     document.getElementById('teamMembers').innerHTML=teamUsers.map(m=>`<div style="padding:8px 0;border-bottom:1px solid #222;display:flex;justify-content:space-between"><span>👤 <b>${m.phone}</b><br><small style="color:${m.has_deposited?'#00ff88':'#ffaa00'}">${m.has_deposited?'✅ Deposited - Commission yahawe':'⏳ Ntira-deposit'}</small></span><span style="color:#00ff88">${m.has_deposited?Math.floor(7000*0.2)+' RWF*':'0 RWF'}</span></div>`).join('');
+     document.getElementById('teamCount').innerText=teamUsers.length;
+     document.getElementById('teamComm').innerText=totalComm.toLocaleString()+' RWF';
    }
-   document.getElementById('teamComm').innerText=(all.reduce((a,b)=>a+(b.commission||0),0)).toLocaleString()+' RWF';
-   document.getElementById('teamCount').innerText=all.length;
  }catch(e){
-   let all=state.team||[];
-   document.getElementById('teamMembers').innerHTML=all.length===0?'<div style="color:#888;padding:20px;text-align:center">Nta muntu uramwinjiraho</div>':all.map(m=>`<div style="padding:7px 0;border-bottom:1px solid #222">👤 ${m.phone}</div>`).join('');
-   document.getElementById('teamCount').innerText=all.length;
-   document.getElementById('teamComm').innerText='0 RWF';
+   console.log(e);
+   document.getElementById('teamMembers').innerHTML='<div style="color:#ff3b3b;padding:10px">Error: '+e.message+'<br>Reba niba column referred_by ibaho</div>';
  }
 }
 
 function copyRef(){let link=document.getElementById('refLink').value;navigator.clipboard.writeText(link).then(()=>alert('✅ Copied: '+link));}
+
 async function submitDeposit(){
  let name=document.getElementById('depName').value.trim();
  let amt=parseInt(document.getElementById('depAmount').value);
@@ -206,11 +256,11 @@ async function submitDeposit(){
  if(!name){alert('Full Name');return}
  if(amt<7000){alert('Min 7000');return}
  if(!tid){alert('Transaction ID');return}
- state.history.unshift({type:'Deposit PENDING - '+name+' TID:'+tid,amount:amt,status:'pending'});
  state.hasDeposited=true;save();
- try{await supabaseClient.from('transactions').insert({user_id:currentUser.id,type:'Deposit - '+name+' - TID:'+tid+' - PENDING',amount:amt,status:'pending'});}catch(e){}
- alert('✅ Deposit yoherejwe! Tegereza Admin');closeModal('depModal');render();
+ try{await supabaseClient.from('transactions').insert({user_id:currentUser.id,type:'Deposit - '+name+' - TID:'+tid,amount:amt,status:'pending'});}catch(e){console.log(e)}
+ alert('✅ Deposit yoherejwe! Tegereza Admin - History izahita iba approved');closeModal('depModal');loadHistoryList();
 }
+
 function claimDaily(){
  let add=0;
  if(state.welcome>0){add=state.welcome;}
@@ -220,8 +270,12 @@ function claimDaily(){
    add=state.daily;
  }
  if(add===0){alert('No bonus');return;}
- state.real+=add;state.total+=add;state.history.unshift({type:'Claim -> Real',amount:add,status:'approved'});state.welcome=0;state.lastClaim=Date.now();save();alert('✅ '+add.toLocaleString()+' RWF to Real!');render();checkTimer();
+ state.real+=add;state.total+=add;state.welcome=0;state.lastClaim=Date.now();save();
+ // Log claim to Supabase
+ supabaseClient.from('transactions').insert({user_id:currentUser.id, type:'Claim -> Real', amount:add, status:'approved'}).then(()=>{loadHistoryList()});
+ alert('✅ '+add.toLocaleString()+' RWF to Real!');render();checkTimer();
 }
+
 function checkTimer(){
  if(!state.lastClaim)return;
  let diff=Date.now()-state.lastClaim;
@@ -239,6 +293,7 @@ function checkTimer(){
    if(state.daily>0){claimBtn.style.display='block';claimBtn.innerText='CLAIM DAILY '+state.daily.toLocaleString()+' RWF';}
  }
 }
+
 async function submitWithdraw(){
  let name=document.getElementById('withName').value.trim();
  let amt=parseInt(document.getElementById('withAmount').value);
@@ -248,17 +303,17 @@ async function submitWithdraw(){
  if(amt<1000){alert('Min 1000');return}
  if(amt>state.real){alert('Insufficient: '+state.real);return}
  if(!phone){alert('Phone');return}
- let fee=Math.floor(amt*0.15);let net=amt-fee;state.real-=amt;
- state.history.unshift({type:'Withdraw '+name+' to '+phone+' Net:'+net,amount:amt,status:'pending'});save();
- try{await supabaseClient.from('transactions').insert({user_id:currentUser.id,type:'Withdraw - '+name+' - '+phone+' Net:'+net,amount:amt,status:'pending'});}catch(e){}
- alert(`✅ Withdraw: ${amt} RWF Fee ${fee} You get ${net}`);closeModal('withModal');
+ let fee=Math.floor(amt*0.15);let net=amt-fee;state.real-=amt;save();
+ try{await supabaseClient.from('transactions').insert({user_id:currentUser.id,type:'Withdraw '+name+' to '+phone+' Net:'+net+' Fee:'+fee,amount:amt,status:'pending'});}catch(e){}
+ alert(`✅ Withdraw: ${amt} RWF Fee ${fee} You get ${net} - History izahinduka approved nyuma ya admin`);closeModal('withModal');loadHistoryList();
 }
+
 function buyPlan(name,price,daily){
  if(state.welcomeLocked){alert('🔒 Welcome LOCKED - Tegereza Admin!');return;}
  if(state.real<price){alert('Real nkeya: '+state.real);openDeposit();return;}
  if(confirm(`Gura ${name}? Price ${price} Daily ${daily}`)){
-   state.real-=price;state.daily=daily;state.lastClaim=Date.now();
-   state.history.unshift({type:'Buy '+name+' Daily Active '+daily,amount:price,status:'approved'});save();
+   state.real-=price;state.daily=daily;state.lastClaim=Date.now();save();
+   supabaseClient.from('transactions').insert({user_id:currentUser.id, type:'Buy '+name+' Daily Active '+daily, amount:price, status:'approved'}).then(()=>loadHistoryList());
    alert('✅ '+name+' Purchased! Daily '+daily+' active - CLAIM after 24h');render();checkTimer();
  }
 }
